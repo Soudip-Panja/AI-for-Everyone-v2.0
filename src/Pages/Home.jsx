@@ -1,8 +1,49 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function Home() {
   const [activeMenu, setActiveMenu] = useState('About');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const videoRef = useRef(null);
+  const reversingRef = useRef(false);
+  // How many seconds to step back per frame during reverse (~24fps feel)
+  const STEP = 1 / 24;
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Called after every successful seek — drives the reverse loop
+    const onSeeked = () => {
+      if (!reversingRef.current) return;
+
+      if (video.currentTime <= 0) {
+        // Hit the start — play forward again
+        reversingRef.current = false;
+        video.currentTime = 0;
+        video.play();
+        return;
+      }
+
+      // Trigger the next reverse step; `seeked` will fire again when done
+      video.currentTime = Math.max(0, video.currentTime - STEP);
+    };
+
+    const handleEnded = () => {
+      reversingRef.current = true;
+      video.pause();
+      // Kick off the first reverse seek immediately (no rAF queuing)
+      video.currentTime = Math.max(0, video.currentTime - STEP);
+    };
+
+    video.addEventListener('ended', handleEnded);
+    video.addEventListener('seeked', onSeeked);
+
+    return () => {
+      video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('seeked', onSeeked);
+    };
+  }, []);
 
   const menuItems = ['Features', 'How It Works', 'About', 'Product', 'Blogs'];
 
@@ -97,14 +138,14 @@ export default function Home() {
 
   return (
     <div className="home-wrapper">
-      {/* Background Video */}
+      {/* Background Video — ping-pong loop (forward → reverse → forward) */}
       <div className="bg-video-container">
-        <video 
-          className="bg-video" 
-          src="/Hero Section Video.mp4" 
-          autoPlay 
-          loop 
-          muted 
+        <video
+          ref={videoRef}
+          className="bg-video"
+          src="/Videos/Hero Section Robo Movement.webm"
+          autoPlay
+          muted
           playsInline
         />
         <div className="bg-video-overlay"></div>

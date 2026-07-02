@@ -69,10 +69,10 @@ button {
 /* Background Video Container styling (positioned on the right to show the AI robot) */
 .bg-video-container {
   position: absolute;
-  top: 100px;
-  right: 180px;
+  top: 130px;
+  right: 0;
   left: auto;
-  width: 50%;
+  width: calc(50% + 180px);
   height: calc(100% - 180px);
   z-index: -2;
   overflow: hidden;
@@ -82,7 +82,7 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: calc(50% + 90px) center;
   /* Mirror video horizontally so the face direction points to the left */
   transform: scaleX(-1);
   /* Enhance light-mode colors and depth */
