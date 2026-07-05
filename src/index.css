@@ -2088,11 +2088,277 @@ button {
 }
 
 .title-theme-2 {
-  color: var(--accent-blue); /* Blue for Legal Minds */
+  color: #d97706; /* Gold/Amber for Legal Minds */
   font-weight: 800;
 }
 
 .title-theme-3 {
-  color: var(--accent-blue); /* Blue for Enterprise */
+  color: #2563eb; /* Electric Blue for Enterprise */
   font-weight: 800;
+}
+
+/* ==================== Legal Minds Card Theme (Gold/Amber) ==================== */
+.service-card.legal-theme {
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 60%, #fef3c7 100%);
+  border: 1.5px solid transparent;
+  box-shadow: 
+    0 20px 40px rgba(217, 119, 6, 0.08),
+    0 1px 3px rgba(217, 119, 6, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  padding: 32px;
+}
+
+.service-card.legal-theme::before {
+  background: linear-gradient(
+    135deg,
+    #f59e0b 0%,
+    #d97706 35%,
+    #b45309 70%,
+    #f59e0b 100%
+  );
+  background-size: 300% 300%;
+}
+
+.service-card.legal-theme:hover::before {
+  background: linear-gradient(
+    135deg,
+    #d97706 0%,
+    #b45309 50%,
+    #78350f 100%
+  );
+  background-size: 300% 300%;
+}
+
+.legal-card-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: #d97706;
+  letter-spacing: -0.01em;
+}
+
+.legal-card-badge {
+  background: #fef3c7;
+  border: 1px solid rgba(217, 119, 6, 0.18);
+  border-radius: 9999px;
+  color: #b45309;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.legal-card-arrow-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+  background: rgba(217, 119, 6, 0.03);
+  color: #d97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.service-card.legal-theme:hover .legal-card-arrow-circle {
+  background: rgba(217, 119, 6, 0.08);
+  border-color: rgba(217, 119, 6, 0.35);
+  transform: scale(1.05);
+}
+
+.legal-card-arrow-circle svg {
+  transition: transform 0.3s ease;
+}
+
+.service-card.legal-theme:hover .legal-card-arrow-circle svg {
+  transform: translate(2px, -2px);
+}
+
+.legal-card-tag {
+  background: rgba(217, 119, 6, 0.05);
+  border: 1px solid rgba(217, 119, 6, 0.15);
+  border-radius: 9999px;
+  color: #b45309;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  transition: all 0.25s ease;
+}
+
+.legal-card-tag:hover {
+  background: rgba(217, 119, 6, 0.1);
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+.legal-card-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: max-content;
+}
+
+.legal-card-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.45);
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+.legal-card-btn:active {
+  transform: translateY(0);
+}
+
+.legal-card-btn svg {
+  transition: transform 0.25s ease;
+}
+
+.legal-card-btn:hover svg {
+  transform: translateX(4px);
+}
+
+/* ==================== Enterprise Card Theme (Electric Blue) ==================== */
+.service-card.enterprise-theme {
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 60%, #dbeafe 100%);
+  border: 1.5px solid transparent;
+  box-shadow: 
+    0 20px 40px rgba(37, 99, 235, 0.08),
+    0 1px 3px rgba(37, 99, 235, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  padding: 32px;
+}
+
+.service-card.enterprise-theme::before {
+  background: linear-gradient(
+    135deg,
+    #3b82f6 0%,
+    #2563eb 35%,
+    #1d4ed8 70%,
+    #3b82f6 100%
+  );
+  background-size: 300% 300%;
+}
+
+.service-card.enterprise-theme:hover::before {
+  background: linear-gradient(
+    135deg,
+    #2563eb 0%,
+    #1d4ed8 50%,
+    #1e40af 100%
+  );
+  background-size: 300% 300%;
+}
+
+.enterprise-card-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2563eb;
+  letter-spacing: -0.01em;
+}
+
+.enterprise-card-badge {
+  background: #dbeafe;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 9999px;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.enterprise-card-arrow-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  background: rgba(37, 99, 235, 0.03);
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.service-card.enterprise-theme:hover .enterprise-card-arrow-circle {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.35);
+  transform: scale(1.05);
+}
+
+.enterprise-card-arrow-circle svg {
+  transition: transform 0.3s ease;
+}
+
+.service-card.enterprise-theme:hover .enterprise-card-arrow-circle svg {
+  transform: translate(2px, -2px);
+}
+
+.enterprise-card-tag {
+  background: rgba(37, 99, 235, 0.05);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  border-radius: 9999px;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  transition: all 0.25s ease;
+}
+
+.enterprise-card-tag:hover {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.enterprise-card-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: max-content;
+}
+
+.enterprise-card-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.enterprise-card-btn:active {
+  transform: translateY(0);
+}
+
+.enterprise-card-btn svg {
+  transition: transform 0.25s ease;
+}
+
+.enterprise-card-btn:hover svg {
+  transform: translateX(4px);
 }

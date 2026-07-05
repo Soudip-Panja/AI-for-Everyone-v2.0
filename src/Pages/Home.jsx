@@ -27,9 +27,10 @@ export default function Home() {
   const studentMovementFramesRef = useRef([]); // preloaded Image objects for 2 Student Movement
   const teacherInFramesRef = useRef([]);        // preloaded Image objects for 3 Teacher In
   const teacherMovementFramesRef = useRef([]);  // preloaded Image objects for 4 Teacher Movement
-  const teacherAnimRef     = useRef(null);       // rAF id for teacher auto-play
-  const teacherFrameIdxRef = useRef(0);          // current frame index during auto-play
-  const isTeacherAnimatingRef = useRef(false);   // guard to prevent scroll handler drawing during teacher animation
+  const lawInFramesRef     = useRef([]);         // preloaded Image objects for 5 Law In
+  const lawMovementFramesRef = useRef([]);      // preloaded Image objects for 6 Law Movement
+  const activeAnimRef      = useRef(null);       // current rAF id for active transition/loop animation
+  const isCharacterAnimatingRef = useRef(false); // guard to prevent scroll handler drawing during character animations
   const onScrollRef        = useRef(null);       // ref to scroll handler to trigger redraws on animation finish
   const FRAME_BASE      = '/Scrum Video/1 Student/frame_';
 
@@ -110,6 +111,22 @@ export default function Home() {
     });
     teacherMovementFramesRef.current = teacherMovementImages;
 
+    // Preload "5 Law In" frames (91 frames)
+    const lawInImages = Array.from({ length: 91 }, (_, i) => {
+      const img = new Image();
+      img.src = `/Scrum Video/5 Law In/frame_${pad(i + 1)}.png`;
+      return img;
+    });
+    lawInFramesRef.current = lawInImages;
+
+    // Preload "6 Law Movement" frames (181 frames)
+    const lawMovementImages = Array.from({ length: 181 }, (_, i) => {
+      const img = new Image();
+      img.src = `/Scrum Video/6 Law Movement/frame_${pad(i + 1)}.png`;
+      return img;
+    });
+    lawMovementFramesRef.current = lawMovementImages;
+
     // Draw helper
     const drawFrame = (images, index) => {
       const img = images[index];
@@ -175,9 +192,9 @@ export default function Home() {
         setActiveCardIndex(newIndex);
       }
 
-      // If the teacher is currently animating, do not let the scroll handler
+      // If any transition animation is active, do not let the scroll handler
       // overwrite the canvas with student frames.
-      if (isTeacherAnimatingRef.current) {
+      if (isCharacterAnimatingRef.current) {
         stopMovementLoop();
         return;
       }
@@ -220,44 +237,24 @@ export default function Home() {
     };
   }, []);
 
-  // ── Teacher In auto-play & Teacher Movement loop ──
+  // ── Unified canvas animation controller ──
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
     // Cancel any currently running animation
-    if (teacherAnimRef.current) {
-      cancelAnimationFrame(teacherAnimRef.current);
-      teacherAnimRef.current = null;
+    if (activeAnimRef.current) {
+      cancelAnimationFrame(activeAnimRef.current);
+      activeAnimRef.current = null;
     }
 
     const prev = prevCardIndexRef.current;
-    const isForward  = activeCardIndex === 1 && prev === 0; // Students → Educators
-    const isReverse  = activeCardIndex === 0 && prev === 1; // Educators → Students
+    const current = activeCardIndex;
 
-    if (!isForward && !isReverse) {
-      isTeacherAnimatingRef.current = false;
-      return;
-    }
-
-    const frames = teacherInFramesRef.current;
-    if (frames.length === 0) return;
-
-    // Start from appropriate end
-    teacherFrameIdxRef.current = isForward ? 0 : frames.length - 1;
-    isTeacherAnimatingRef.current = true;
-
-    let inMovementLoop = false;
-    let movementFrameIdx = 0;
-
-    const FPS = 30;
-    const FRAME_DURATION = 1000 / FPS;
-    let lastTimestamp = null;
-
-    const drawTeacherFrame = (index, isLoop = false) => {
-      const framesSource = isLoop ? teacherMovementFramesRef.current : teacherInFramesRef.current;
-      const img = framesSource[index];
+    const drawFrameLocal = (images, index) => {
+      if (!images || images.length === 0) return;
+      const img = images[index];
       if (!img || !img.complete || img.naturalWidth === 0) return;
       if (canvas.width !== img.naturalWidth || canvas.height !== img.naturalHeight) {
         canvas.width  = img.naturalWidth;
@@ -267,6 +264,73 @@ export default function Home() {
       ctx.drawImage(img, 0, 0);
     };
 
+    let FPS = 30;
+    if ((current === 2 && prev === 1) || (current === 1 && prev === 2)) {
+      FPS = 45; // Play Law In sequence (video 5) slightly faster
+    }
+    const FRAME_DURATION = 1000 / FPS;
+    let lastTimestamp = null;
+
+    let sequence = null;
+    let mode = 'hold'; // 'forward_then_loop', 'reverse_then_stop', 'forward_then_hold', 'reverse_then_loop', 'loop_only', 'hold'
+    let currentFrameIdx = 0;
+    let loopSequence = null;
+    let movementFrameIdx = 0;
+
+    if (current === 1 && prev === 0) {
+      // Students → Educators: play Teacher In forward, then loop Teacher Movement
+      sequence = teacherInFramesRef.current;
+      mode = 'forward_then_loop';
+      loopSequence = teacherMovementFramesRef.current;
+      currentFrameIdx = 0;
+    } else if (current === 0 && prev === 1) {
+      // Educators → Students: play Teacher In reverse, then stop
+      sequence = teacherInFramesRef.current;
+      mode = 'reverse_then_stop';
+      currentFrameIdx = sequence.length - 1;
+    } else if (current === 2 && prev === 1) {
+      // Educators → Legal Minds: play Law In forward, then loop Law Movement
+      sequence = lawInFramesRef.current;
+      mode = 'forward_then_loop';
+      loopSequence = lawMovementFramesRef.current;
+      currentFrameIdx = 0;
+    } else if (current === 1 && prev === 2) {
+      // Legal Minds → Educators: play Law In in reverse, then loop Teacher Movement
+      sequence = lawInFramesRef.current;
+      mode = 'reverse_then_loop';
+      loopSequence = teacherMovementFramesRef.current;
+      currentFrameIdx = sequence.length - 1;
+    } else {
+      // Resting states with no active transitions
+      isCharacterAnimatingRef.current = false;
+      if (current === 2 || current === 3) {
+        // Resting on Legal or Enterprise: loop Law Movement
+        sequence = lawMovementFramesRef.current;
+        if (sequence.length > 0) {
+          mode = 'loop_only';
+          currentFrameIdx = 0;
+        }
+      } else if (current === 1) {
+        sequence = teacherMovementFramesRef.current;
+        if (sequence.length > 0) {
+          mode = 'loop_only';
+          currentFrameIdx = 0;
+        }
+      } else {
+        if (onScrollRef.current) {
+          onScrollRef.current();
+        }
+        return;
+      }
+    }
+
+    if (sequence && sequence.length > 0) {
+      isCharacterAnimatingRef.current = true;
+    } else {
+      isCharacterAnimatingRef.current = false;
+      return;
+    }
+
     const animate = (timestamp) => {
       if (lastTimestamp === null) lastTimestamp = timestamp;
       const elapsed = timestamp - lastTimestamp;
@@ -274,51 +338,72 @@ export default function Home() {
       if (elapsed >= FRAME_DURATION) {
         lastTimestamp = timestamp;
 
-        if (isForward) {
-          if (!inMovementLoop) {
-            drawTeacherFrame(teacherFrameIdxRef.current, false);
-            if (teacherFrameIdxRef.current < frames.length - 1) {
-              teacherFrameIdxRef.current++;
-            } else {
-              // Transition to "4 Teacher Movement" loop
-              inMovementLoop = true;
-              movementFrameIdx = 0;
-            }
+        if (mode === 'forward_then_loop') {
+          drawFrameLocal(sequence, currentFrameIdx);
+          if (currentFrameIdx < sequence.length - 1) {
+            currentFrameIdx++;
+            activeAnimRef.current = requestAnimationFrame(animate);
           } else {
-            const loopFrames = teacherMovementFramesRef.current;
-            if (loopFrames.length > 0) {
-              drawTeacherFrame(movementFrameIdx, true);
-              movementFrameIdx = (movementFrameIdx + 1) % loopFrames.length;
-            }
+            mode = 'loop_only';
+            sequence = loopSequence;
+            currentFrameIdx = 0;
+            activeAnimRef.current = requestAnimationFrame(animate);
           }
-          teacherAnimRef.current = requestAnimationFrame(animate);
-        } else if (isReverse) {
-          drawTeacherFrame(teacherFrameIdxRef.current, false);
-          if (teacherFrameIdxRef.current > 0) {
-            teacherFrameIdxRef.current--;
-            teacherAnimRef.current = requestAnimationFrame(animate);
+        } else if (mode === 'reverse_then_stop') {
+          drawFrameLocal(sequence, currentFrameIdx);
+          if (currentFrameIdx > 0) {
+            currentFrameIdx--;
+            activeAnimRef.current = requestAnimationFrame(animate);
           } else {
-            // Reached start — hold on frame 0, stop animation
-            teacherAnimRef.current = null;
-            isTeacherAnimatingRef.current = false;
+            activeAnimRef.current = null;
+            isCharacterAnimatingRef.current = false;
             if (onScrollRef.current) {
               onScrollRef.current();
             }
           }
+        } else if (mode === 'forward_then_hold') {
+          drawFrameLocal(sequence, currentFrameIdx);
+          if (currentFrameIdx < sequence.length - 1) {
+            currentFrameIdx++;
+            activeAnimRef.current = requestAnimationFrame(animate);
+          } else {
+            activeAnimRef.current = null;
+            isCharacterAnimatingRef.current = false;
+          }
+        } else if (mode === 'reverse_then_loop') {
+          drawFrameLocal(sequence, currentFrameIdx);
+          if (currentFrameIdx > 0) {
+            currentFrameIdx--;
+            activeAnimRef.current = requestAnimationFrame(animate);
+          } else {
+            mode = 'loop_only';
+            sequence = loopSequence;
+            currentFrameIdx = 0;
+            activeAnimRef.current = requestAnimationFrame(animate);
+          }
+        } else if (mode === 'loop_only') {
+          if (sequence && sequence.length > 0) {
+            drawFrameLocal(sequence, currentFrameIdx);
+            currentFrameIdx = (currentFrameIdx + 1) % sequence.length;
+            activeAnimRef.current = requestAnimationFrame(animate);
+          } else {
+            activeAnimRef.current = null;
+            isCharacterAnimatingRef.current = false;
+          }
         }
       } else {
-        teacherAnimRef.current = requestAnimationFrame(animate);
+        activeAnimRef.current = requestAnimationFrame(animate);
       }
     };
 
-    teacherAnimRef.current = requestAnimationFrame(animate);
+    activeAnimRef.current = requestAnimationFrame(animate);
 
     return () => {
-      if (teacherAnimRef.current) {
-        cancelAnimationFrame(teacherAnimRef.current);
-        teacherAnimRef.current = null;
+      if (activeAnimRef.current) {
+        cancelAnimationFrame(activeAnimRef.current);
+        activeAnimRef.current = null;
       }
-      isTeacherAnimatingRef.current = false;
+      isCharacterAnimatingRef.current = false;
     };
   }, [activeCardIndex]);
 
@@ -335,8 +420,7 @@ export default function Home() {
 
     const cardWidth = (viewport.offsetWidth - 44) / 2;
     const offset = activeCardIndex * (cardWidth + 44);
-    const maxOffset = track.scrollWidth - viewport.offsetWidth;
-    track.style.transform = `translate3d(-${Math.min(offset, maxOffset)}px, 0, 0)`;
+    track.style.transform = `translate3d(-${offset}px, 0, 0)`;
 
     // Update dots
     const dots = document.querySelectorAll('.service-dot');
@@ -917,7 +1001,7 @@ export default function Home() {
               </div>
 
               {/* Card 3 */}
-              <div className="service-card">
+              <div className={`service-card ${activeCardIndex === 2 ? 'legal-theme' : ''}`}>
                 {/* Dots grid background */}
                 <div className="student-card-dots">
                   <svg className="student-card-dots-svg" width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -941,7 +1025,7 @@ export default function Home() {
                                 cx={cx}
                                 cy={cy}
                                 r={radius}
-                                fill="var(--accent-blue)"
+                                fill={activeCardIndex === 2 ? '#d97706' : 'var(--accent-blue)'}
                                 className="animated-dot"
                                 style={{
                                   '--base-opacity': opacity,
@@ -957,17 +1041,64 @@ export default function Home() {
                   </svg>
                 </div>
 
-                <div className="card-top-minimal">
-                  <span className="card-number-large">03</span>
-                  <span className="card-arrow-large">↗</span>
-                </div>
-                <div className="card-bottom-minimal">
-                  <h3 className="card-title-large">LEGAL MINDS</h3>
-                </div>
+                {activeCardIndex === 2 ? (
+                  <>
+                    <div className="student-card-header">
+                      <div className="student-card-meta">
+                        <span className="legal-card-num">03</span>
+                        <span className="legal-card-badge">Legal Minds</span>
+                      </div>
+                      <div className="legal-card-arrow-circle">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="7" y1="17" x2="17" y2="7"></line>
+                          <polyline points="7 7 17 7 17 17"></polyline>
+                        </svg>
+                      </div>
+                    </div>
+
+                    <div className="student-card-content">
+                      <h3 className="student-card-title" style={{ color: '#0f172a' }}>
+                        Empower your legal practice with AI.
+                      </h3>
+                      <p className="student-card-subtitle">
+                        Smarter research, faster drafting, compliance.
+                      </p>
+                      <p className="student-card-body">
+                        Tailored AI solutions for law firms, corporate legal teams, and independent practitioners. Automate contract analysis, speed up case research, and master document generation safely.
+                      </p>
+                    </div>
+
+                    <div className="student-card-footer">
+                      <div className="student-card-tags">
+                        <span className="legal-card-tag">Contract AI</span>
+                        <span className="legal-card-tag">Case Research</span>
+                        <span className="legal-card-tag">Document Drafting</span>
+                        <span className="legal-card-tag">Compliance</span>
+                      </div>
+                      <button className="legal-card-btn">
+                        Explore Legal AI Programs
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '8px' }}>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                          <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="card-top-minimal">
+                      <span className="card-number-large" style={{ color: '#d97706' }}>03</span>
+                      <span className="card-arrow-large" style={{ color: '#d97706' }}>↗</span>
+                    </div>
+                    <div className="card-bottom-minimal">
+                      <h3 className="card-title-large">LEGAL MINDS</h3>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Card 4 */}
-              <div className="service-card">
+              <div className={`service-card ${activeCardIndex === 3 ? 'enterprise-theme' : ''}`}>
                 {/* Dots grid background */}
                 <div className="student-card-dots">
                   <svg className="student-card-dots-svg" width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -991,7 +1122,7 @@ export default function Home() {
                                 cx={cx}
                                 cy={cy}
                                 r={radius}
-                                fill="var(--accent-blue)"
+                                fill={activeCardIndex === 3 ? '#2563eb' : 'var(--accent-blue)'}
                                 className="animated-dot"
                                 style={{
                                   '--base-opacity': opacity,
@@ -1007,13 +1138,60 @@ export default function Home() {
                   </svg>
                 </div>
 
-                <div className="card-top-minimal">
-                  <span className="card-number-large">04</span>
-                  <span className="card-arrow-large">↗</span>
-                </div>
-                <div className="card-bottom-minimal">
-                  <h3 className="card-title-large">ENTERPRISE</h3>
-                </div>
+                {activeCardIndex === 3 ? (
+                  <>
+                    <div className="student-card-header">
+                      <div className="student-card-meta">
+                        <span className="enterprise-card-num">04</span>
+                        <span className="enterprise-card-badge">Enterprise</span>
+                      </div>
+                      <div className="enterprise-card-arrow-circle">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="7" y1="17" x2="17" y2="7"></line>
+                          <polyline points="7 7 17 7 17 17"></polyline>
+                        </svg>
+                      </div>
+                    </div>
+
+                    <div className="student-card-content">
+                      <h3 className="student-card-title" style={{ color: '#0f172a' }}>
+                        Scale AI across your organization.
+                      </h3>
+                      <p className="student-card-subtitle">
+                        Custom workflows, secure integrations, metrics.
+                      </p>
+                      <p className="student-card-body">
+                        Bespoke enterprise training, custom workflow development, and secure AI agent integrations. Upskill your workforce and drive measurable efficiency at scale.
+                      </p>
+                    </div>
+
+                    <div className="student-card-footer">
+                      <div className="student-card-tags">
+                        <span className="enterprise-card-tag">Upskilling FDP</span>
+                        <span className="enterprise-card-tag">Custom Workflows</span>
+                        <span className="enterprise-card-tag">Agent Integration</span>
+                        <span className="enterprise-card-tag">Secure AI</span>
+                      </div>
+                      <button className="enterprise-card-btn">
+                        Explore Enterprise Programs
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '8px' }}>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                          <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="card-top-minimal">
+                      <span className="card-number-large" style={{ color: '#2563eb' }}>04</span>
+                      <span className="card-arrow-large" style={{ color: '#2563eb' }}>↗</span>
+                    </div>
+                    <div className="card-bottom-minimal">
+                      <h3 className="card-title-large">ENTERPRISE</h3>
+                    </div>
+                  </>
+                )}
               </div>
             </div>{/* end services-cards-track */}
           </div>{/* end services-cards-viewport */}
