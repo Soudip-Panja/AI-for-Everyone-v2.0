@@ -7,6 +7,11 @@ export default function Home() {
   const viewportRef = useRef(null);
   const CARD_COUNT = 4;
 
+  const activeCardIndexRef = useRef(0);
+  useEffect(() => {
+    activeCardIndexRef.current = activeCardIndex;
+  }, [activeCardIndex]);
+
   const videoRef = useRef(null);
   const reversingRef = useRef(false);
   // How many seconds to step back per frame during reverse (~24fps feel)
@@ -16,8 +21,8 @@ export default function Home() {
   const canvasRef       = useRef(null);
   const scrubSectionRef = useRef(null);
   const cardsContainerRef = useRef(null);
-  const framesRef       = useRef([]);   // preloaded Image objects
-  const FRAME_COUNT     = 40;
+  const studentInFramesRef = useRef([]);   // preloaded Image objects for 1 Student
+  const studentMovementFramesRef = useRef([]); // preloaded Image objects for 2 Student Movement
   const FRAME_BASE      = '/Scrum Video/1 Student/frame_';
 
   useEffect(() => {
@@ -56,86 +61,158 @@ export default function Home() {
     };
   }, []);
 
-  // ── Preload all frames + scroll-scrub ──
+  // ── Preload all frames + scroll-scrub + automatic movement looping ──
   useEffect(() => {
     const canvas  = canvasRef.current;
     const section = scrubSectionRef.current;
     if (!canvas || !section) return;
 
     const ctx = canvas.getContext('2d');
-
-    // Helper: zero-pad frame number to 4 digits
     const pad = (n) => String(n).padStart(4, '0');
 
-    // Preload every frame
-    const images = Array.from({ length: FRAME_COUNT }, (_, i) => {
+    // Preload "1 Student" frames (40 frames)
+    const studentInImages = Array.from({ length: 40 }, (_, i) => {
       const img = new Image();
-      img.src = `${FRAME_BASE}${pad(i + 1)}.png`;
+      img.src = `/Scrum Video/1 Student/frame_${pad(i + 1)}.png`;
       return img;
     });
-    framesRef.current = images;
+    studentInFramesRef.current = studentInImages;
 
-    // Draw at exactly 1:1 — no destination size = no JS scaling at all
-    const drawFrame = (index) => {
+    // Preload "2 Student Movement" frames (181 frames for new 6s 30fps video)
+    const studentMovementImages = Array.from({ length: 181 }, (_, i) => {
+      const img = new Image();
+      img.src = `/Scrum Video/2 Student Movement/frame_${pad(i + 1)}.png`;
+      return img;
+    });
+    studentMovementFramesRef.current = studentMovementImages;
+
+    // Draw helper
+    const drawFrame = (images, index) => {
       const img = images[index];
-      if (!img.complete || img.naturalWidth === 0) return;
+      if (!img || !img.complete || img.naturalWidth === 0) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
     };
 
     const initCanvasSize = () => {
-      if (images[0].naturalWidth > 0) {
-        canvas.width = images[0].naturalWidth;
-        canvas.height = images[0].naturalHeight;
-        drawFrame(0);
+      if (studentInImages[0].naturalWidth > 0) {
+        canvas.width = studentInImages[0].naturalWidth;
+        canvas.height = studentInImages[0].naturalHeight;
+        drawFrame(studentInImages, 0);
       }
     };
 
-    // Draw frame 0 as soon as it's ready
-    if (images[0].complete) {
+    // Draw frame 0 when ready
+    if (studentInImages[0].complete) {
       initCanvasSize();
     } else {
-      images[0].onload = initCanvasSize;
+      studentInImages[0].onload = initCanvasSize;
     }
 
-    // Scroll handler: map scroll position → frame index only (cards handled by button click)
+    // Movement loop variables
+    let loopInterval = null;
+    let loopFrameIndex = 0;
+
+    const startMovementLoop = () => {
+      if (loopInterval) return;
+      loopInterval = setInterval(() => {
+        const frames = studentMovementFramesRef.current;
+        if (frames.length === 0) return;
+        loopFrameIndex = (loopFrameIndex + 1) % frames.length;
+        drawFrame(frames, loopFrameIndex);
+      }, 1000 / 30); // Play at 30fps as configured for the new video
+    };
+
+    const stopMovementLoop = () => {
+      if (loopInterval) {
+        clearInterval(loopInterval);
+        loopInterval = null;
+      }
+    };
+
+    // Scroll handler: map scroll position → walk-in scrub or movement loop
     const onScroll = () => {
       const rect       = section.getBoundingClientRect();
       const scrollable = section.offsetHeight - window.innerHeight;
       const scrolled   = -rect.top;
       const progress   = Math.min(1, Math.max(0, scrolled / scrollable));
-      const frameIndex = Math.round(progress * (FRAME_COUNT - 1));
-      drawFrame(frameIndex);
+
+      // 1. Determine active card index dynamically based on scroll progress
+      let newIndex = 0;
+      if (progress >= 0.75) {
+        newIndex = 3;
+      } else if (progress >= 0.5) {
+        newIndex = 2;
+      } else if (progress >= 0.25) {
+        newIndex = 1;
+      }
+
+      if (newIndex !== activeCardIndexRef.current) {
+        setActiveCardIndex(newIndex);
+      }
+
+      // 2. Play walk-in scrub or idle movement loop based on scroll state
+      if (progress < 0.25) {
+        // Card 1 is active
+        if (progress < 0.10) {
+          // User is scrubbing the walk-in sequence ("1 Student" folder)
+          stopMovementLoop();
+          const inFrames = studentInFramesRef.current;
+          if (inFrames.length > 0) {
+            const localProgress = progress / 0.10;
+            const frameIndex = Math.min(
+              inFrames.length - 1,
+              Math.max(0, Math.round(localProgress * (inFrames.length - 1)))
+            );
+            drawFrame(inFrames, frameIndex);
+          }
+        } else {
+          // Walk-in is fully loaded; play the loop of "2 Student Movement"
+          startMovementLoop();
+        }
+      } else {
+        // Scrolled past Card 1 (progress >= 0.25) -> stop movement loop
+        stopMovementLoop();
+        // Keep the canvas on the last frame of the walk-in sequence
+        const inFrames = studentInFramesRef.current;
+        if (inFrames.length > 0) {
+          drawFrame(inFrames, inFrames.length - 1);
+        }
+      }
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
 
     return () => {
       window.removeEventListener('scroll', onScroll);
+      if (loopInterval) {
+        clearInterval(loopInterval);
+      }
     };
   }, []);
 
-  // ── Card navigation: compute card width from viewport and slide track ──
+  // ── Card navigation: simply increment activeCardIndex ──
   const handleNextCard = () => {
+    setActiveCardIndex((prev) => (prev + 1) % CARD_COUNT);
+  };
+
+  // ── Card translation effect ──
+  useEffect(() => {
     const viewport = viewportRef.current;
     const track = cardsContainerRef.current;
     if (!viewport || !track) return;
 
-    const nextIndex = (activeCardIndex + 1) % CARD_COUNT;
-    setActiveCardIndex(nextIndex);
-
-    // Each card occupies exactly half the viewport width (minus the gap)
     const cardWidth = (viewport.offsetWidth - 44) / 2;
-    const offset = nextIndex * (cardWidth + 44);
+    const offset = activeCardIndex * (cardWidth + 44);
     const maxOffset = track.scrollWidth - viewport.offsetWidth;
     track.style.transform = `translate3d(-${Math.min(offset, maxOffset)}px, 0, 0)`;
 
     // Update dots
     const dots = document.querySelectorAll('.service-dot');
     dots.forEach((dot, idx) => {
-      dot.classList.toggle('active', idx === nextIndex);
+      dot.classList.toggle('active', idx === activeCardIndex);
     });
-  };
+  }, [activeCardIndex]);
 
   // ── Dynamic card sizing: each card = half viewport width ──
   useEffect(() => {
@@ -487,7 +564,18 @@ export default function Home() {
           <div className="services-header">
             <div className="services-header-left">
               <span className="services-eyebrow">WHAT WE DO</span>
-              <h2 className="services-title">Our Services</h2>
+              <h2 className="services-title">
+                AI <span className="title-for">for</span>{' '}
+                <span 
+                  key={activeCardIndex} 
+                  className={`services-title-animated-span title-theme-${activeCardIndex}`}
+                >
+                  {activeCardIndex === 0 && "Students"}
+                  {activeCardIndex === 1 && "Educators"}
+                  {activeCardIndex === 2 && "Legal Minds"}
+                  {activeCardIndex === 3 && "Enterprise"}
+                </span>
+              </h2>
             </div>
             <div className="services-header-right">
               <p className="services-desc">
@@ -503,239 +591,297 @@ export default function Home() {
               <div ref={viewportRef} className="services-cards-viewport">
                 <div ref={cardsContainerRef} className="services-cards-track">
               {/* Card 1 */}
-              <div className="service-card">
-                <div className="card-top">
-                  <div className="card-icon-wrap">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 20h9" />
-                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                    </svg>
-                  </div>
-                  <div className="card-meta">
-                    <span className="card-number">01</span>
-                    <span className="card-arrow">↗</span>
-                  </div>
+              <div className={`service-card student-theme ${activeCardIndex !== 0 ? 'collapsed' : ''}`}>
+                {/* Dots grid background */}
+                <div className="student-card-dots">
+                  <svg className="student-card-dots-svg" width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {(() => {
+                      const dots = [];
+                      const spacing = 15;
+                      const startOffset = 18;
+                      for (let r = 0; r < 8; r++) {
+                        for (let c = 0; c < 8; c++) {
+                          if (r + c >= 7) {
+                            const d = r + c - 7;
+                            const cx = startOffset + c * spacing;
+                            const cy = startOffset + r * spacing;
+                            const distFromCorner = 14 - (r + c);
+                            const radius = Math.max(0.8, 3.5 - distFromCorner * 0.38);
+                            const opacity = Math.max(0.08, 0.9 - distFromCorner * 0.11);
+                            
+                            const delay = (r + c) * 0.12;
+                            dots.push(
+                              <circle
+                                key={`${r}-${c}`}
+                                cx={cx}
+                                cy={cy}
+                                r={radius}
+                                fill="#a855f7"
+                                className="animated-dot"
+                                style={{
+                                  '--base-opacity': opacity,
+                                  animationDelay: `${delay}s`
+                                }}
+                              />
+                            );
+                          }
+                        }
+                      }
+                      return dots;
+                    })()}
+                  </svg>
                 </div>
-                <div className="card-middle">
-                  <h3 className="card-title">UI/UX Design</h3>
-                  <p className="card-body">
-                    End-to-end product design — research, UX flows, polished UI systems, and developer-ready handoff.
-                  </p>
-                </div>
-                <div className="card-divider"></div>
-                <div className="card-bottom">
-                  <div>
-                    <h4 className="card-col-title">Services</h4>
-                    <ul className="card-list">
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> User Research & Strategy</li>
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> UX Flows & Wireframes</li>
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> UI Systems & Prototypes</li>
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> Design Ops & Handoff</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="card-col-title">Tools</h4>
-                    <div className="card-tools-grid">
-                      <span className="tool-icon-box" title="Figma">
-                        <svg width="16" height="16" viewBox="0 0 38 57" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M9.5 19C9.5 13.8 13.8 9.5 19 9.5C24.2 9.5 28.5 13.8 28.5 19V28.5H19C13.8 28.5 9.5 24.2 9.5 19Z" fill="#F24E1E" />
-                          <path d="M9.5 9.5C9.5 4.3 13.8 0 19 0C24.2 0 28.5 4.3 28.5 9.5V19H19C13.8 19 9.5 14.7 9.5 9.5Z" fill="#A259FF" />
-                          <path d="M9.5 47.5C9.5 42.3 13.8 38 19 38C24.2 38 28.5 42.3 28.5 47.5C28.5 52.7 24.2 57 19 57C13.8 57 9.5 52.7 9.5 47.5Z" fill="#1ABCFE" />
-                          <path d="M19 28.5H28.5V38H19V28.5Z" fill="#0ACF83" />
-                          <path d="M28.5 19C28.5 13.8 32.8 9.5 38 9.5C43.2 9.5 47.5 13.8 47.5 19C47.5 24.2 43.2 28.5 38 28.5H28.5V19Z" fill="#FF7262" transform="translate(-9.5)" />
+                
+                {activeCardIndex === 0 ? (
+                  <>
+                    <div className="student-card-header">
+                      <div className="student-card-meta">
+                        <span className="student-card-num">01</span>
+                        <span className="student-card-badge">Students</span>
+                      </div>
+                      <div className="student-card-arrow-circle">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="7" y1="17" x2="17" y2="7"></line>
+                          <polyline points="7 7 17 7 17 17"></polyline>
                         </svg>
-                      </span>
-                      <span className="tool-icon-box" title="Sketch">
-                        <svg width="16" height="16" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M256 32L32 192L256 480L480 192L256 32Z" fill="#FDB300" />
-                          <path d="M256 32L128 192H384L256 32Z" fill="#F17C00" />
-                          <path d="M256 32L32 192H128L256 32Z" fill="#FFC107" />
-                          <path d="M256 32L480 192H384L256 32Z" fill="#E65100" />
-                          <path d="M256 480L32 192H128L256 480Z" fill="#FFE082" />
-                          <path d="M256 480L480 192H384L256 480Z" fill="#FFB300" />
-                          <path d="M256 480L128 192H384L256 480Z" fill="#FFCA28" />
-                        </svg>
-                      </span>
-                      <span className="tool-icon-box" title="Framer">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12 0h12v12h-12zM0 12h12v12l-12-12zM12 12h12v12h-12z" />
-                        </svg>
-                      </span>
-                      <span className="tool-icon-box" title="Creative Cloud">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12 .002C5.373.002 0 5.376 0 12c0 6.628 5.373 12 12 12s12-5.372 12-12c0-6.624-5.373-11.998-12-11.998zm2.296 16.945c-.413.413-.912.75-1.496.966-.583.216-1.217.324-1.9.324a5.952 5.952 0 0 1-2.274-.436c-.696-.289-1.289-.705-1.782-1.246a5.533 5.533 0 0 1-1.127-1.9c-.267-.74-.4-1.543-.4-2.408 0-.847.133-1.645.4-2.394.267-.75.642-1.39 1.127-1.921A5.31 5.31 0 0 1 8.625 7.1c.696-.307 1.454-.46 2.274-.46.729 0 1.393.12 1.993.36s1.115.6 1.545 1.08c.43.48.749 1.07.957 1.77.208.7.312 1.52.312 2.457 0 .198-.01.391-.03.58a7.016 7.016 0 0 1-.09 1.02H9.083c.04.593.18 1.107.42 1.54a2.76 2.76 0 0 0 1.075 1.025c.44.234.935.35 1.485.35.433 0 .808-.06 1.125-.18a2.124 2.124 0 0 0 .785-.49l1.328 1.8z" />
-                        </svg>
-                      </span>
+                      </div>
                     </div>
-                  </div>
-                </div>
+
+                    <div className="student-card-content">
+                      <h3 className="student-card-title">
+                        Learn. Build. Get<br />hired.
+                      </h3>
+                      <p className="student-card-subtitle">
+                        From your first prompt to a portfolio that opens doors.
+                      </p>
+                      <p className="student-card-body">
+                        Structured AI foundations, live project builds judged by industry, and certification paths that connect directly to placement opportunities.
+                      </p>
+                    </div>
+
+                    <div className="student-card-footer">
+                      <div className="student-card-tags">
+                        <span className="student-card-tag">AI Foundations</span>
+                        <span className="student-card-tag">Portfolio Projects</span>
+                        <span className="student-card-tag">Certifications</span>
+                        <span className="student-card-tag">Placement Support</span>
+                      </div>
+                      <button className="student-card-btn">
+                        Explore Student Programs
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '8px' }}>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                          <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="card-top-minimal">
+                      <span className="card-number-large" style={{ color: '#a855f7' }}>01</span>
+                      <span className="card-arrow-large" style={{ color: '#a855f7' }}>↗</span>
+                    </div>
+                    <div className="card-bottom-minimal">
+                      <h3 className="card-title-large" style={{ color: '#0c0f1d' }}>STUDENTS</h3>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Card 2 */}
-              <div className="service-card">
-                <div className="card-top">
-                  <div className="card-icon-wrap">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="2" y1="12" x2="22" y2="12" />
-                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                    </svg>
-                  </div>
-                  <div className="card-meta">
-                    <span className="card-number">02</span>
-                    <span className="card-arrow">↗</span>
-                  </div>
+              <div className={`service-card ${activeCardIndex === 1 ? 'educator-theme' : ''}`}>
+                {/* Dots grid background */}
+                <div className="student-card-dots">
+                  <svg className="student-card-dots-svg" width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {(() => {
+                      const dots = [];
+                      const spacing = 15;
+                      const startOffset = 18;
+                      for (let r = 0; r < 8; r++) {
+                        for (let c = 0; c < 8; c++) {
+                          if (r + c >= 7) {
+                            const cx = startOffset + c * spacing;
+                            const cy = startOffset + r * spacing;
+                            const distFromCorner = 14 - (r + c);
+                            const radius = Math.max(0.8, 3.5 - distFromCorner * 0.38);
+                            const opacity = Math.max(0.08, 0.9 - distFromCorner * 0.11);
+                            
+                            const delay = (r + c) * 0.12;
+                            dots.push(
+                              <circle
+                                key={`${r}-${c}`}
+                                cx={cx}
+                                cy={cy}
+                                r={radius}
+                                fill={activeCardIndex === 1 ? '#f43f5e' : 'var(--accent-blue)'}
+                                className="animated-dot"
+                                style={{
+                                  '--base-opacity': opacity,
+                                  animationDelay: `${delay}s`
+                                }}
+                              />
+                            );
+                          }
+                        }
+                      }
+                      return dots;
+                    })()}
+                  </svg>
                 </div>
-                <div className="card-middle">
-                  <h3 className="card-title">Website Design</h3>
-                  <p className="card-body">
-                    Modern, responsive websites built for performance, scalability, and great user experiences.
-                  </p>
-                </div>
-                <div className="card-divider"></div>
-                <div className="card-bottom">
-                  <div>
-                    <h4 className="card-col-title">Services</h4>
-                    <ul className="card-list">
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> Responsive Web Design</li>
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> Landing Pages</li>
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> CMS Integration</li>
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> Performance Audit</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="card-col-title">Tools</h4>
-                    <div className="card-tools-grid">
-                      <span className="tool-icon-box" title="React">
-                        <svg width="16" height="16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <ellipse cx="50" cy="50" rx="8" ry="20" stroke="#00d8ff" strokeWidth="2" fill="none" transform="rotate(0 50 50)" />
-                          <ellipse cx="50" cy="50" rx="8" ry="20" stroke="#00d8ff" strokeWidth="2" fill="none" transform="rotate(60 50 50)" />
-                          <ellipse cx="50" cy="50" rx="8" ry="20" stroke="#00d8ff" strokeWidth="2" fill="none" transform="rotate(120 50 50)" />
-                          <circle cx="50" cy="50" r="4" fill="#00d8ff" />
+
+                {activeCardIndex === 1 ? (
+                  <>
+                    <div className="student-card-header">
+                      <div className="student-card-meta">
+                        <span className="educator-card-num">02</span>
+                        <span className="educator-card-badge">Educators</span>
+                      </div>
+                      <div className="educator-card-arrow-circle">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="7" y1="17" x2="17" y2="7"></line>
+                          <polyline points="7 7 17 7 17 17"></polyline>
                         </svg>
-                      </span>
-                      <span className="tool-icon-box" title="WordPress">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12.158 12.786l-2.698 7.84c.834.238 1.708.374 2.61.374.606 0 1.196-.062 1.768-.175l-1.68-8.039zm4.275 6.012A9.742 9.742 0 0021.75 12c0-2.47-.92-4.72-2.434-6.435L16.433 18.8zm-1.89-10.741c.642 0 1.118-.535 1.118-1.071c0-.49-.344-.925-.875-1.071c-1.125-.306-2.906-.306-4.032 0c-.53.146-.874.58-.874 1.07c0 .537.476 1.072 1.118 1.072c.69-.036 1.848-.036 2.545 0zM12 0C5.373 0 0 5.373 0 12s5.373 12 12 12s12-5.373 12-12S18.627 0 12 0zm-8.318 6.47c1.47 2.052 3.822 5.253 5.4 7.424l-3.328 9.605C3.212 21.037 1.8 16.812 1.8 12c0-2.023.63-3.896 1.882-5.53z" />
-                        </svg>
-                      </span>
-                      <span className="tool-icon-box" title="Webflow">
-                        <svg width="16" height="16" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M92.1 20.3L77.9 66.5c-.9 3-2.9 4-4.8 4s-3.7-1.1-4.7-4.1L57.5 35.8L46.6 66.5c-.9 3-2.9 4-4.8 4s-3.7-1.1-4.7-4.1L23 20.3c-.6-2 .1-3.6 2-3.6h9c1.9 0 3 .9 3.5 2.5L46 51.5L56.9 20.3c.5-1.6 1.6-2.5 3.5-2.5h8.9c1.9 0 3 .9 3.5 2.5L83.7 51.5l7.9-25c.5-1.6 1.6-2.5 3.5-2.5h1.9c1.9.1 2.6 1.7 2.1 3.8L92.1 20.3zM14.9 20.3L6 49.2c-.6 2-.1 3.6 2 3.6h9c1.9 0 3-.9 3.5-2.5L26.4 20c.5-1.6 1.6-2.5 3.5-2.5h1.9c1.9 0 2.6.9 2.1 2.8L21.3 62.1c-.9 3-2.9 4-4.8 4s-3.7-1.1-4.7-4.1L3.1 20.3c-.6-2 .1-3.6 2-3.6h9.1c1.9.1 2.6 1.7 2.1 3.6h-.1z" />
-                        </svg>
-                      </span>
-                      <span className="tool-icon-box" title="Tailwind">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12 6.002C12 2.69 14.69 0 18 0c1.803 0 3.42.793 4.5 2.054a5.973 5.973 0 004.5-2.052c0 3.312-2.69 6-6 6a5.977 5.977 0 00-4.5-2.054A5.972 5.972 0 0012 6.002zM0 18.002c0-3.312 2.69-6 6-6a5.977 5.977 0 004.5 2.054 5.972 5.972 0 004.5-2.052c0 3.312-2.69 6-6 6a5.977 5.977 0 00-4.5-2.054A5.972 5.972 0 000 18.002z" />
-                        </svg>
-                      </span>
+                      </div>
                     </div>
-                  </div>
-                </div>
+
+                    <div className="student-card-content">
+                      <h3 className="student-card-title" style={{ color: '#0f172a' }}>
+                        Bring AI into your classroom.
+                      </h3>
+                      <p className="student-card-subtitle">
+                        Teach with AI — not around it.
+                      </p>
+                      <p className="student-card-body">
+                        Ready-to-run curriculum modules, faculty development programs, and teaching toolkits that make AI approachable for every subject and grade.
+                      </p>
+                    </div>
+
+                    <div className="student-card-footer">
+                      <div className="student-card-tags">
+                        <span className="educator-card-tag">Curriculum Design</span>
+                        <span className="educator-card-tag">Faculty Development</span>
+                        <span className="educator-card-tag">Teaching Toolkits</span>
+                        <span className="educator-card-tag">Workshops</span>
+                      </div>
+                      <button className="educator-card-btn">
+                        Explore Educator Programs
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '8px' }}>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                          <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="card-top-minimal">
+                      <span className="card-number-large">02</span>
+                      <span className="card-arrow-large">↗</span>
+                    </div>
+                    <div className="card-bottom-minimal">
+                      <h3 className="card-title-large">EDUCATORS</h3>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Card 3 */}
               <div className="service-card">
-                <div className="card-top">
-                  <div className="card-icon-wrap">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                      <line x1="12" y1="18" x2="12.01" y2="18" />
-                    </svg>
-                  </div>
-                  <div className="card-meta">
-                    <span className="card-number">03</span>
-                    <span className="card-arrow">↗</span>
-                  </div>
+                {/* Dots grid background */}
+                <div className="student-card-dots">
+                  <svg className="student-card-dots-svg" width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {(() => {
+                      const dots = [];
+                      const spacing = 15;
+                      const startOffset = 18;
+                      for (let r = 0; r < 8; r++) {
+                        for (let c = 0; c < 8; c++) {
+                          if (r + c >= 7) {
+                            const cx = startOffset + c * spacing;
+                            const cy = startOffset + r * spacing;
+                            const distFromCorner = 14 - (r + c);
+                            const radius = Math.max(0.8, 3.5 - distFromCorner * 0.38);
+                            const opacity = Math.max(0.08, 0.9 - distFromCorner * 0.11);
+                            
+                            const delay = (r + c) * 0.12;
+                            dots.push(
+                              <circle
+                                key={`${r}-${c}`}
+                                cx={cx}
+                                cy={cy}
+                                r={radius}
+                                fill="var(--accent-blue)"
+                                className="animated-dot"
+                                style={{
+                                  '--base-opacity': opacity,
+                                  animationDelay: `${delay}s`
+                                }}
+                              />
+                            );
+                          }
+                        }
+                      }
+                      return dots;
+                    })()}
+                  </svg>
                 </div>
-                <div className="card-middle">
-                  <h3 className="card-title">App Development</h3>
-                  <p className="card-body">
-                    Native and cross-platform mobile apps crafted with fluid motion, offline capabilities, and native integrations.
-                  </p>
+
+                <div className="card-top-minimal">
+                  <span className="card-number-large">03</span>
+                  <span className="card-arrow-large">↗</span>
                 </div>
-                <div className="card-divider"></div>
-                <div className="card-bottom">
-                  <div>
-                    <h4 className="card-col-title">Services</h4>
-                    <ul className="card-list">
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> Native iOS & Android</li>
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> Flutter/React Native</li>
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> Cloud API Syncing</li>
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> Store Optimizations</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="card-col-title">Tools</h4>
-                    <div className="card-tools-grid">
-                      <span className="tool-icon-box" title="Swift">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M21.5 14.1c-.2-.4-1.2-1.5-1.9-2.2-.3-.3-.9-1-1.3-1.4-.4-.4-.8-.7-1.1-.9-.3-.2-.5-.3-.5-.3s-.1 0-.2.1c0 0-.2.2-.3.4-.2.4-.4.8-.4 1.3 0 1.2.6 2.3 1.4 3.1.8.8 1.9 1.4 3.1 1.4.5 0 .9-.2 1.3-.4.2-.1.4-.3.4-.3s-.2-.3-.5-.7z" />
-                          <path d="M12.9 6.2c-.3 0-.6.1-.8.3-.5.4-.8 1.1-.8 1.8 0 1 .4 1.9 1.1 2.6.7.7 1.6 1.1 2.6 1.1.7 0 1.4-.3 1.8-.8.2-.2.3-.5.3-.8 0-.7-.4-1.4-.8-1.8L12.9 6.2z" />
-                          <path d="M19.1 16.5c-1.3-1.3-3.1-2.1-5-2.1-2.2 0-4.1 1.1-5.3 2.8-.2.3-.3.7-.3 1 0 1.1.9 2 2 2h7.3c1.1 0 2-.9 2-2 0-.7-.3-1.3-.7-1.7z" />
-                        </svg>
-                      </span>
-                      <span className="tool-icon-box" title="Flutter">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M14.3 0L5.5 8.8l3.7 3.7 8.8-8.8H14.3zm5.4 11.1L10.9 20l8.8 4h4.3l-8.8-8.8 4.7-4.1h-4.2z" />
-                        </svg>
-                      </span>
-                      <span className="tool-icon-box" title="Node">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12 2L2 7.8v11.6L12 22l10-5.6V7.8L12 2zm8 13.3L12 19.8l-8-4.5V8.9l8-4.5 8 4.5v6.4z" />
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
+                <div className="card-bottom-minimal">
+                  <h3 className="card-title-large">LEGAL MINDS</h3>
                 </div>
               </div>
 
               {/* Card 4 */}
               <div className="service-card">
-                <div className="card-top">
-                  <div className="card-icon-wrap">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-3.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2z" />
-                      <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-3.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2z" />
-                    </svg>
-                  </div>
-                  <div className="card-meta">
-                    <span className="card-number">04</span>
-                    <span className="card-arrow">↗</span>
-                  </div>
+                {/* Dots grid background */}
+                <div className="student-card-dots">
+                  <svg className="student-card-dots-svg" width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {(() => {
+                      const dots = [];
+                      const spacing = 15;
+                      const startOffset = 18;
+                      for (let r = 0; r < 8; r++) {
+                        for (let c = 0; c < 8; c++) {
+                          if (r + c >= 7) {
+                            const cx = startOffset + c * spacing;
+                            const cy = startOffset + r * spacing;
+                            const distFromCorner = 14 - (r + c);
+                            const radius = Math.max(0.8, 3.5 - distFromCorner * 0.38);
+                            const opacity = Math.max(0.08, 0.9 - distFromCorner * 0.11);
+                            
+                            const delay = (r + c) * 0.12;
+                            dots.push(
+                              <circle
+                                key={`${r}-${c}`}
+                                cx={cx}
+                                cy={cy}
+                                r={radius}
+                                fill="var(--accent-blue)"
+                                className="animated-dot"
+                                style={{
+                                  '--base-opacity': opacity,
+                                  animationDelay: `${delay}s`
+                                }}
+                              />
+                            );
+                          }
+                        }
+                      }
+                      return dots;
+                    })()}
+                  </svg>
                 </div>
-                <div className="card-middle">
-                  <h3 className="card-title">AI & Data Solutions</h3>
-                  <p className="card-body">
-                    Integrating intelligence into workflows — custom LLM fine-tuning, retrieval systems, and prediction models.
-                  </p>
+
+                <div className="card-top-minimal">
+                  <span className="card-number-large">04</span>
+                  <span className="card-arrow-large">↗</span>
                 </div>
-                <div className="card-divider"></div>
-                <div className="card-bottom">
-                  <div>
-                    <h4 className="card-col-title">Services</h4>
-                    <ul className="card-list">
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> LLM & Agent Pipelines</li>
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> Semantic Vector Search</li>
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> Data Science Pipelines</li>
-                      <li className="card-list-item"><span className="card-list-bullet">•</span> Custom Model Training</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="card-col-title">Tools</h4>
-                    <div className="card-tools-grid">
-                      <span className="tool-icon-box" title="Python">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M11.9 0c-2.4 0-4.6.2-4.6 2.3v1.8h4.7v.6H5.2c-2.1 0-3.3 1.2-3.3 3.3v4.6c0 2 1.3 3.3 3.3 3.3h1.8v-2.5c0-2 1.6-3.7 3.7-3.7h4.7V5.2c0-2-1.3-3.3-3.3-3.3l-.2-.1.3-1.8zm6.9 8.7v2.5c0 2-1.6 3.7-3.7 3.7h-4.7v4.6c0 2 1.3 3.3 3.3 3.3h2.4c2.4 0 4.6-.2 4.6-2.3v-1.8h-4.7v-.6h6.7c2.1 0 3.3-1.2 3.3-3.3V9.5c0-2.1-1.3-3.3-3.3-3.3h-1.8v2.5z" />
-                        </svg>
-                      </span>
-                      <span className="tool-icon-box" title="OpenAI">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M22.5 10.7a4.99 4.99 0 0 0-1.7-3.7 5.11 5.11 0 0 0-4.8-.8A5 5 0 0 0 12 2.5a5.03 5.03 0 0 0-4 3.7 5.12 5.12 0 0 0-4.8.8 4.99 4.99 0 0 0-1.7 3.7c0 1.2.4 2.3 1.2 3.2v.3a4.99 4.99 0 0 0 1.7 3.7c1 .8 2.2 1.2 3.5 1a5.11 5.11 0 0 0 4.8.8A5 5 0 0 0 12 21.5c1.5 0 3-.7 4-2a5.12 5.12 0 0 0 4.8-.8 4.99 4.99 0 0 0 1.7-3.7c0-1.2-.4-2.3-1.2-3.2l.2-.1z" />
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
+                <div className="card-bottom-minimal">
+                  <h3 className="card-title-large">ENTERPRISE</h3>
                 </div>
               </div>
             </div>{/* end services-cards-track */}

@@ -1559,3 +1559,540 @@ button {
   }
 }
 
+/* ==================== Student Programs Card Theme ==================== */
+.service-card.student-theme {
+  background: linear-gradient(135deg, #ffffff 0%, #fbfaff 60%, #f5f0ff 100%);
+  border: 1.5px solid transparent;
+  box-shadow: 
+    0 20px 40px rgba(168, 85, 247, 0.08),
+    0 1px 3px rgba(168, 85, 247, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  padding: 32px;
+}
+
+.service-card.student-theme::before {
+  background: linear-gradient(
+    135deg,
+    #ec4899 0%,
+    #d946ef 35%,
+    #a855f7 70%,
+    #ec4899 100%
+  );
+  background-size: 300% 300%;
+}
+
+.service-card.student-theme:hover::before {
+  background: linear-gradient(
+    135deg,
+    #db2777 0%,
+    #c084fc 50%,
+    #9333ea 100%
+  );
+  background-size: 300% 300%;
+}
+
+/* Dots pattern background for student card */
+.student-card-dots {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 140px;
+  height: 140px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.student-card-dots-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    opacity: var(--base-opacity);
+    transform: scale(1);
+  }
+  50% {
+    opacity: calc(var(--base-opacity) * 1.5);
+    transform: scale(1.35);
+  }
+}
+
+.animated-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dotPulse 3s ease-in-out infinite;
+}
+
+/* Header */
+.student-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+  width: 100%;
+}
+
+.student-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.student-card-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: #a855f7;
+  letter-spacing: -0.01em;
+}
+
+.student-card-badge {
+  background: #f3e8ff;
+  border: 1px solid rgba(168, 85, 247, 0.18);
+  border-radius: 9999px;
+  color: #a855f7;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Arrow circle button */
+.student-card-arrow-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: rgba(168, 85, 247, 0.03);
+  color: #a855f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.service-card.student-theme:hover .student-card-arrow-circle {
+  background: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.35);
+  transform: scale(1.05);
+}
+
+.student-card-arrow-circle svg {
+  transition: transform 0.3s ease;
+}
+
+.service-card.student-theme:hover .student-card-arrow-circle svg {
+  transform: translate(2px, -2px);
+}
+
+/* Content block */
+.student-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+  z-index: 2;
+  margin-top: 10px;
+}
+
+.student-card-title {
+  font-size: 38px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+}
+
+.student-card-subtitle {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.45;
+  color: #475569;
+  margin: 0;
+}
+
+.student-card-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+  margin: 0;
+}
+
+/* Footer & Buttons */
+.student-card-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 2;
+  margin-top: auto;
+}
+
+.student-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.student-card-tag {
+  background: rgba(168, 85, 247, 0.05);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  border-radius: 9999px;
+  color: #8b5cf6;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  transition: all 0.25s ease;
+}
+
+.student-card-tag:hover {
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+/* Gradient CTA Button */
+.student-card-btn {
+  background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: max-content;
+}
+
+.student-card-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.45);
+  background: linear-gradient(135deg, #db2777 0%, #9333ea 100%);
+}
+
+.student-card-btn:active {
+  transform: translateY(0);
+}
+
+.student-card-btn svg {
+  transition: transform 0.25s ease;
+}
+
+.student-card-btn:hover svg {
+  transform: translateX(4px);
+}
+
+
+
+/* Responsive Overrides */
+@media (max-width: 1023px) {
+  .service-card.student-theme {
+    padding: 28px;
+  }
+  .student-card-title {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 767px) {
+  .service-card.student-theme {
+    padding: 24px;
+  }
+  .student-card-title {
+    font-size: 28px;
+  }
+  .student-card-subtitle {
+    font-size: 15px;
+  }
+  .student-card-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+}
+
+/* ==================== Services Header Title Customizations ==================== */
+.title-for {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #71717a;
+  margin: 0 6px;
+  text-transform: lowercase;
+}
+
+.title-students {
+  color: #a855f7;
+  font-weight: 800;
+}
+
+/* ==================== Card 2 Minimalist Customizations ==================== */
+.card-top-minimal {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  z-index: 2;
+}
+
+.card-number-large {
+  font-size: 52px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  line-height: 1;
+  font-family: var(--font-sans);
+}
+
+.card-arrow-large {
+  font-size: 42px;
+  font-weight: 300;
+  color: var(--accent-blue);
+  line-height: 1;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.service-card:hover .card-arrow-large {
+  transform: translate(6px, -6px);
+}
+
+.card-bottom-minimal {
+  margin-top: auto;
+  z-index: 2;
+  text-align: left;
+}
+
+.card-title-large {
+  font-size: 36px;
+  font-weight: 800;
+  color: #0c0f1d;
+  line-height: 1.15;
+  margin: 0;
+  font-family: var(--font-sans);
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 1023px) {
+  .card-number-large {
+    font-size: 44px;
+  }
+  .card-arrow-large {
+    font-size: 36px;
+  }
+  .card-title-large {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 767px) {
+  .card-number-large {
+    font-size: 38px;
+  }
+  .card-arrow-large {
+    font-size: 32px;
+  }
+  .card-title-large {
+    font-size: 26px;
+  }
+}
+
+/* ==================== Educator Programs Card Theme ==================== */
+.service-card.educator-theme {
+  background: linear-gradient(135deg, #ffffff 0%, #fff5f5 60%, #fff0f3 100%);
+  border: 1.5px solid transparent;
+  box-shadow: 
+    0 20px 40px rgba(244, 63, 94, 0.08),
+    0 1px 3px rgba(244, 63, 94, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  padding: 32px;
+}
+
+.service-card.educator-theme::before {
+  background: linear-gradient(
+    135deg,
+    #f43f5e 0%,
+    #e11d48 35%,
+    #be123c 70%,
+    #f43f5e 100%
+  );
+  background-size: 300% 300%;
+}
+
+.service-card.educator-theme:hover::before {
+  background: linear-gradient(
+    135deg,
+    #e11d48 0%,
+    #be123c 50%,
+    #9f1239 100%
+  );
+  background-size: 300% 300%;
+}
+
+/* Accent texts */
+.educator-card-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f43f5e;
+  letter-spacing: -0.01em;
+}
+
+.educator-card-badge {
+  background: #ffe4e6;
+  border: 1px solid rgba(244, 63, 94, 0.18);
+  border-radius: 9999px;
+  color: #f43f5e;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.educator-card-arrow-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  background: rgba(244, 63, 94, 0.03);
+  color: #f43f5e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.service-card.educator-theme:hover .educator-card-arrow-circle {
+  background: rgba(244, 63, 94, 0.08);
+  border-color: rgba(244, 63, 94, 0.35);
+  transform: scale(1.05);
+}
+
+.educator-card-arrow-circle svg {
+  transition: transform 0.3s ease;
+}
+
+.service-card.educator-theme:hover .educator-card-arrow-circle svg {
+  transform: translate(2px, -2px);
+}
+
+.educator-card-tag {
+  background: rgba(244, 63, 94, 0.05);
+  border: 1px solid rgba(244, 63, 94, 0.15);
+  border-radius: 9999px;
+  color: #e11d48;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  transition: all 0.25s ease;
+}
+
+.educator-card-tag:hover {
+  background: rgba(244, 63, 94, 0.1);
+  border-color: rgba(244, 63, 94, 0.3);
+}
+
+.educator-card-btn {
+  background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(244, 63, 94, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: max-content;
+}
+
+.educator-card-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(244, 63, 94, 0.45);
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+}
+
+.educator-card-btn:active {
+  transform: translateY(0);
+}
+
+.educator-card-btn svg {
+  transition: transform 0.25s ease;
+}
+
+.educator-card-btn:hover svg {
+  transform: translateX(4px);
+}
+
+@media (max-width: 1023px) {
+  .service-card.educator-theme {
+    padding: 28px;
+  }
+}
+
+@media (max-width: 767px) {
+  .service-card.educator-theme {
+    padding: 24px;
+  }
+  .educator-card-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+}
+
+/* ==================== Dynamic Heading Title Animations ==================== */
+@keyframes title-change {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.services-title-animated-span {
+  display: inline-block;
+  animation: title-change 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: left center;
+}
+
+.title-theme-0 {
+  color: #a855f7; /* Purple for Students */
+  font-weight: 800;
+}
+
+.title-theme-1 {
+  color: #f43f5e; /* Pink/Red for Educators */
+  font-weight: 800;
+}
+
+.title-theme-2 {
+  color: var(--accent-blue); /* Blue for Legal Minds */
+  font-weight: 800;
+}
+
+.title-theme-3 {
+  color: var(--accent-blue); /* Blue for Enterprise */
+  font-weight: 800;
+}
