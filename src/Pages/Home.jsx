@@ -8,7 +8,9 @@ export default function Home() {
   const CARD_COUNT = 4;
 
   const activeCardIndexRef = useRef(0);
+  const prevCardIndexRef   = useRef(0);          // previous card index for direction detection
   useEffect(() => {
+    prevCardIndexRef.current = activeCardIndexRef.current;
     activeCardIndexRef.current = activeCardIndex;
   }, [activeCardIndex]);
 
@@ -23,6 +25,12 @@ export default function Home() {
   const cardsContainerRef = useRef(null);
   const studentInFramesRef = useRef([]);   // preloaded Image objects for 1 Student
   const studentMovementFramesRef = useRef([]); // preloaded Image objects for 2 Student Movement
+  const teacherInFramesRef = useRef([]);        // preloaded Image objects for 3 Teacher In
+  const teacherMovementFramesRef = useRef([]);  // preloaded Image objects for 4 Teacher Movement
+  const teacherAnimRef     = useRef(null);       // rAF id for teacher auto-play
+  const teacherFrameIdxRef = useRef(0);          // current frame index during auto-play
+  const isTeacherAnimatingRef = useRef(false);   // guard to prevent scroll handler drawing during teacher animation
+  const onScrollRef        = useRef(null);       // ref to scroll handler to trigger redraws on animation finish
   const FRAME_BASE      = '/Scrum Video/1 Student/frame_';
 
   useEffect(() => {
@@ -85,6 +93,22 @@ export default function Home() {
       return img;
     });
     studentMovementFramesRef.current = studentMovementImages;
+
+    // Preload "3 Teacher In" frames (49 frames)
+    const teacherInImages = Array.from({ length: 49 }, (_, i) => {
+      const img = new Image();
+      img.src = `/Scrum Video/3 Teacher In/frame_${pad(i + 1)}.png`;
+      return img;
+    });
+    teacherInFramesRef.current = teacherInImages;
+
+    // Preload "4 Teacher Movement" frames (181 frames)
+    const teacherMovementImages = Array.from({ length: 181 }, (_, i) => {
+      const img = new Image();
+      img.src = `/Scrum Video/4 Teacher Movement/frame_${pad(i + 1)}.png`;
+      return img;
+    });
+    teacherMovementFramesRef.current = teacherMovementImages;
 
     // Draw helper
     const drawFrame = (images, index) => {
@@ -151,6 +175,13 @@ export default function Home() {
         setActiveCardIndex(newIndex);
       }
 
+      // If the teacher is currently animating, do not let the scroll handler
+      // overwrite the canvas with student frames.
+      if (isTeacherAnimatingRef.current) {
+        stopMovementLoop();
+        return;
+      }
+
       // 2. Play walk-in scrub or idle movement loop based on scroll state
       if (progress < 0.25) {
         // Card 1 is active
@@ -171,25 +202,125 @@ export default function Home() {
           startMovementLoop();
         }
       } else {
-        // Scrolled past Card 1 (progress >= 0.25) -> stop movement loop
+        // Scrolled past Card 1 (progress >= 0.25) — stop student movement loop.
+        // Teacher In auto-play is handled by its own useEffect.
         stopMovementLoop();
-        // Keep the canvas on the last frame of the walk-in sequence
-        const inFrames = studentInFramesRef.current;
-        if (inFrames.length > 0) {
-          drawFrame(inFrames, inFrames.length - 1);
-        }
       }
     };
 
+    onScrollRef.current = onScroll;
     window.addEventListener('scroll', onScroll, { passive: true });
 
     return () => {
       window.removeEventListener('scroll', onScroll);
+      onScrollRef.current = null;
       if (loopInterval) {
         clearInterval(loopInterval);
       }
     };
   }, []);
+
+  // ── Teacher In auto-play & Teacher Movement loop ──
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    // Cancel any currently running animation
+    if (teacherAnimRef.current) {
+      cancelAnimationFrame(teacherAnimRef.current);
+      teacherAnimRef.current = null;
+    }
+
+    const prev = prevCardIndexRef.current;
+    const isForward  = activeCardIndex === 1 && prev === 0; // Students → Educators
+    const isReverse  = activeCardIndex === 0 && prev === 1; // Educators → Students
+
+    if (!isForward && !isReverse) {
+      isTeacherAnimatingRef.current = false;
+      return;
+    }
+
+    const frames = teacherInFramesRef.current;
+    if (frames.length === 0) return;
+
+    // Start from appropriate end
+    teacherFrameIdxRef.current = isForward ? 0 : frames.length - 1;
+    isTeacherAnimatingRef.current = true;
+
+    let inMovementLoop = false;
+    let movementFrameIdx = 0;
+
+    const FPS = 30;
+    const FRAME_DURATION = 1000 / FPS;
+    let lastTimestamp = null;
+
+    const drawTeacherFrame = (index, isLoop = false) => {
+      const framesSource = isLoop ? teacherMovementFramesRef.current : teacherInFramesRef.current;
+      const img = framesSource[index];
+      if (!img || !img.complete || img.naturalWidth === 0) return;
+      if (canvas.width !== img.naturalWidth || canvas.height !== img.naturalHeight) {
+        canvas.width  = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+    };
+
+    const animate = (timestamp) => {
+      if (lastTimestamp === null) lastTimestamp = timestamp;
+      const elapsed = timestamp - lastTimestamp;
+
+      if (elapsed >= FRAME_DURATION) {
+        lastTimestamp = timestamp;
+
+        if (isForward) {
+          if (!inMovementLoop) {
+            drawTeacherFrame(teacherFrameIdxRef.current, false);
+            if (teacherFrameIdxRef.current < frames.length - 1) {
+              teacherFrameIdxRef.current++;
+            } else {
+              // Transition to "4 Teacher Movement" loop
+              inMovementLoop = true;
+              movementFrameIdx = 0;
+            }
+          } else {
+            const loopFrames = teacherMovementFramesRef.current;
+            if (loopFrames.length > 0) {
+              drawTeacherFrame(movementFrameIdx, true);
+              movementFrameIdx = (movementFrameIdx + 1) % loopFrames.length;
+            }
+          }
+          teacherAnimRef.current = requestAnimationFrame(animate);
+        } else if (isReverse) {
+          drawTeacherFrame(teacherFrameIdxRef.current, false);
+          if (teacherFrameIdxRef.current > 0) {
+            teacherFrameIdxRef.current--;
+            teacherAnimRef.current = requestAnimationFrame(animate);
+          } else {
+            // Reached start — hold on frame 0, stop animation
+            teacherAnimRef.current = null;
+            isTeacherAnimatingRef.current = false;
+            if (onScrollRef.current) {
+              onScrollRef.current();
+            }
+          }
+        }
+      } else {
+        teacherAnimRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    teacherAnimRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (teacherAnimRef.current) {
+        cancelAnimationFrame(teacherAnimRef.current);
+        teacherAnimRef.current = null;
+      }
+      isTeacherAnimatingRef.current = false;
+    };
+  }, [activeCardIndex]);
 
   // ── Card navigation: simply increment activeCardIndex ──
   const handleNextCard = () => {
