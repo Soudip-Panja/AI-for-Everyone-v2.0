@@ -29,6 +29,8 @@ export default function Home() {
   const teacherMovementFramesRef = useRef([]);  // preloaded Image objects for 4 Teacher Movement
   const lawInFramesRef     = useRef([]);         // preloaded Image objects for 5 Law In
   const lawMovementFramesRef = useRef([]);      // preloaded Image objects for 6 Law Movement
+  const enterpriseInFramesRef = useRef([]);     // preloaded Image objects for 7 Enterprise In
+  const enterpriseMovementFramesRef = useRef([]); // preloaded Image objects for 8 Enterprise Movement
   const activeAnimRef      = useRef(null);       // current rAF id for active transition/loop animation
   const isCharacterAnimatingRef = useRef(false); // guard to prevent scroll handler drawing during character animations
   const onScrollRef        = useRef(null);       // ref to scroll handler to trigger redraws on animation finish
@@ -126,6 +128,22 @@ export default function Home() {
       return img;
     });
     lawMovementFramesRef.current = lawMovementImages;
+
+    // Preload "7 Enterprise In" frames (61 frames)
+    const enterpriseInImages = Array.from({ length: 61 }, (_, i) => {
+      const img = new Image();
+      img.src = `/Scrum Video/7 Enterprise In/frame_${pad(i + 1)}.png`;
+      return img;
+    });
+    enterpriseInFramesRef.current = enterpriseInImages;
+
+    // Preload "8 Enterprise Movement" frames (181 frames)
+    const enterpriseMovementImages = Array.from({ length: 181 }, (_, i) => {
+      const img = new Image();
+      img.src = `/Scrum Video/8 Enterprise Movement/frame_${pad(i + 1)}.png`;
+      return img;
+    });
+    enterpriseMovementFramesRef.current = enterpriseMovementImages;
 
     // Draw helper
     const drawFrame = (images, index) => {
@@ -300,11 +318,30 @@ export default function Home() {
       mode = 'reverse_then_loop';
       loopSequence = teacherMovementFramesRef.current;
       currentFrameIdx = sequence.length - 1;
+    } else if (current === 3 && prev === 2) {
+      // Legal Minds → Enterprise: play Enterprise In forward, then loop Enterprise Movement
+      sequence = enterpriseInFramesRef.current;
+      mode = 'forward_then_loop';
+      loopSequence = enterpriseMovementFramesRef.current;
+      currentFrameIdx = 0;
+    } else if (current === 2 && prev === 3) {
+      // Enterprise → Legal Minds: play Enterprise In in reverse, then loop Law Movement
+      sequence = enterpriseInFramesRef.current;
+      mode = 'reverse_then_loop';
+      loopSequence = lawMovementFramesRef.current;
+      currentFrameIdx = sequence.length - 1;
     } else {
       // Resting states with no active transitions
       isCharacterAnimatingRef.current = false;
-      if (current === 2 || current === 3) {
-        // Resting on Legal or Enterprise: loop Law Movement
+      if (current === 3) {
+        // Resting on Enterprise: loop Enterprise Movement
+        sequence = enterpriseMovementFramesRef.current;
+        if (sequence.length > 0) {
+          mode = 'loop_only';
+          currentFrameIdx = 0;
+        }
+      } else if (current === 2) {
+        // Resting on Legal: loop Law Movement
         sequence = lawMovementFramesRef.current;
         if (sequence.length > 0) {
           mode = 'loop_only';
@@ -778,7 +815,7 @@ export default function Home() {
           {/* Header — two-column: title left (card1 width), description right (card2 width) */}
           <div className="services-header">
             <div className="services-header-left">
-              <span className="services-eyebrow">WHAT WE DO</span>
+              <span className="services-eyebrow">WHO IS THIS FOR?</span>
               <h2 className="services-title">
                 AI <span className="title-for">for</span>{' '}
                 <span 
@@ -794,7 +831,7 @@ export default function Home() {
             </div>
             <div className="services-header-right">
               <p className="services-desc">
-                We offer comprehensive digital solutions that transform your business and drive innovation across every touchpoint.
+                From learning AI fundamentals to building real-world projects, we help every learner turn knowledge into opportunities.
               </p>
             </div>
           </div>
@@ -897,14 +934,14 @@ export default function Home() {
                       <span className="card-arrow-large" style={{ color: '#a855f7' }}>↗</span>
                     </div>
                     <div className="card-bottom-minimal">
-                      <h3 className="card-title-large" style={{ color: '#0c0f1d' }}>STUDENTS</h3>
+                      <h3 className="card-title-large" style={{ color: '#a855f7' }}>STUDENTS</h3>
                     </div>
                   </>
                 )}
               </div>
 
               {/* Card 2 */}
-              <div className={`service-card ${activeCardIndex === 1 ? 'educator-theme' : ''}`}>
+              <div className={`service-card educator-theme ${activeCardIndex !== 1 ? 'collapsed' : ''}`}>
                 {/* Dots grid background */}
                 <div className="student-card-dots">
                   <svg className="student-card-dots-svg" width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -928,7 +965,7 @@ export default function Home() {
                                 cx={cx}
                                 cy={cy}
                                 r={radius}
-                                fill={activeCardIndex === 1 ? '#f43f5e' : 'var(--accent-blue)'}
+                                fill="#f43f5e"
                                 className="animated-dot"
                                 style={{
                                   '--base-opacity': opacity,
@@ -990,18 +1027,18 @@ export default function Home() {
                 ) : (
                   <>
                     <div className="card-top-minimal">
-                      <span className="card-number-large">02</span>
-                      <span className="card-arrow-large">↗</span>
+                      <span className="card-number-large" style={{ color: '#f43f5e' }}>02</span>
+                      <span className="card-arrow-large" style={{ color: '#f43f5e' }}>↗</span>
                     </div>
                     <div className="card-bottom-minimal">
-                      <h3 className="card-title-large">EDUCATORS</h3>
+                      <h3 className="card-title-large" style={{ color: '#f43f5e' }}>EDUCATORS</h3>
                     </div>
                   </>
                 )}
               </div>
 
               {/* Card 3 */}
-              <div className={`service-card ${activeCardIndex === 2 ? 'legal-theme' : ''}`}>
+              <div className={`service-card legal-theme ${activeCardIndex !== 2 ? 'collapsed' : ''}`}>
                 {/* Dots grid background */}
                 <div className="student-card-dots">
                   <svg className="student-card-dots-svg" width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1025,7 +1062,7 @@ export default function Home() {
                                 cx={cx}
                                 cy={cy}
                                 r={radius}
-                                fill={activeCardIndex === 2 ? '#d97706' : 'var(--accent-blue)'}
+                                fill="#d97706"
                                 className="animated-dot"
                                 style={{
                                   '--base-opacity': opacity,
@@ -1091,14 +1128,14 @@ export default function Home() {
                       <span className="card-arrow-large" style={{ color: '#d97706' }}>↗</span>
                     </div>
                     <div className="card-bottom-minimal">
-                      <h3 className="card-title-large">LEGAL MINDS</h3>
+                      <h3 className="card-title-large" style={{ color: '#d97706' }}>LEGAL MINDS</h3>
                     </div>
                   </>
                 )}
               </div>
 
               {/* Card 4 */}
-              <div className={`service-card ${activeCardIndex === 3 ? 'enterprise-theme' : ''}`}>
+              <div className={`service-card enterprise-theme ${activeCardIndex !== 3 ? 'collapsed' : ''}`}>
                 {/* Dots grid background */}
                 <div className="student-card-dots">
                   <svg className="student-card-dots-svg" width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1122,7 +1159,7 @@ export default function Home() {
                                 cx={cx}
                                 cy={cy}
                                 r={radius}
-                                fill={activeCardIndex === 3 ? '#2563eb' : 'var(--accent-blue)'}
+                                fill="#2563eb"
                                 className="animated-dot"
                                 style={{
                                   '--base-opacity': opacity,
@@ -1188,7 +1225,7 @@ export default function Home() {
                       <span className="card-arrow-large" style={{ color: '#2563eb' }}>↗</span>
                     </div>
                     <div className="card-bottom-minimal">
-                      <h3 className="card-title-large">ENTERPRISE</h3>
+                      <h3 className="card-title-large" style={{ color: '#2563eb' }}>ENTERPRISE</h3>
                     </div>
                   </>
                 )}
