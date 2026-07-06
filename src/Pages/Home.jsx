@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 
 export default function Home() {
-  const [activeMenu, setActiveMenu] = useState('About');
+  const [activeMenu, setActiveMenu] = useState('Home');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const [studentInTrigger, setStudentInTrigger] = useState(0);
   const viewportRef = useRef(null);
   const CARD_COUNT = 4;
 
@@ -34,6 +35,8 @@ export default function Home() {
   const activeAnimRef      = useRef(null);       // current rAF id for active transition/loop animation
   const isCharacterAnimatingRef = useRef(false); // guard to prevent scroll handler drawing during character animations
   const onScrollRef        = useRef(null);       // ref to scroll handler to trigger redraws on animation finish
+  const isSnappingRef      = useRef(false);      // tracks whether a scroll-snap animation is in progress
+  const hasPlayedStudentInRef = useRef(false);   // tracks whether the initial walk-in animation has played for this visit
   const FRAME_BASE      = '/Scrum Video/1 Student/frame_';
 
   useEffect(() => {
@@ -84,7 +87,9 @@ export default function Home() {
     // Preload "1 Student" frames (40 frames)
     const studentInImages = Array.from({ length: 40 }, (_, i) => {
       const img = new Image();
+      img.decoding = 'async';
       img.src = `/Scrum Video/1 Student/frame_${pad(i + 1)}.png`;
+      img.decode().catch(() => {}); // pre-decode eagerly for stutter-free starting playback
       return img;
     });
     studentInFramesRef.current = studentInImages;
@@ -92,6 +97,7 @@ export default function Home() {
     // Preload "2 Student Movement" frames (181 frames for new 6s 30fps video)
     const studentMovementImages = Array.from({ length: 181 }, (_, i) => {
       const img = new Image();
+      img.decoding = 'async';
       img.src = `/Scrum Video/2 Student Movement/frame_${pad(i + 1)}.png`;
       return img;
     });
@@ -100,6 +106,7 @@ export default function Home() {
     // Preload "3 Teacher In" frames (49 frames)
     const teacherInImages = Array.from({ length: 49 }, (_, i) => {
       const img = new Image();
+      img.decoding = 'async';
       img.src = `/Scrum Video/3 Teacher In/frame_${pad(i + 1)}.png`;
       return img;
     });
@@ -108,6 +115,7 @@ export default function Home() {
     // Preload "4 Teacher Movement" frames (181 frames)
     const teacherMovementImages = Array.from({ length: 181 }, (_, i) => {
       const img = new Image();
+      img.decoding = 'async';
       img.src = `/Scrum Video/4 Teacher Movement/frame_${pad(i + 1)}.png`;
       return img;
     });
@@ -116,6 +124,7 @@ export default function Home() {
     // Preload "5 Law In" frames (91 frames)
     const lawInImages = Array.from({ length: 91 }, (_, i) => {
       const img = new Image();
+      img.decoding = 'async';
       img.src = `/Scrum Video/5 Law In/frame_${pad(i + 1)}.png`;
       return img;
     });
@@ -124,6 +133,7 @@ export default function Home() {
     // Preload "6 Law Movement" frames (181 frames)
     const lawMovementImages = Array.from({ length: 181 }, (_, i) => {
       const img = new Image();
+      img.decoding = 'async';
       img.src = `/Scrum Video/6 Law Movement/frame_${pad(i + 1)}.png`;
       return img;
     });
@@ -132,6 +142,7 @@ export default function Home() {
     // Preload "7 Enterprise In" frames (61 frames)
     const enterpriseInImages = Array.from({ length: 61 }, (_, i) => {
       const img = new Image();
+      img.decoding = 'async';
       img.src = `/Scrum Video/7 Enterprise In/frame_${pad(i + 1)}.png`;
       return img;
     });
@@ -140,6 +151,7 @@ export default function Home() {
     // Preload "8 Enterprise Movement" frames (181 frames)
     const enterpriseMovementImages = Array.from({ length: 181 }, (_, i) => {
       const img = new Image();
+      img.decoding = 'async';
       img.src = `/Scrum Video/8 Enterprise Movement/frame_${pad(i + 1)}.png`;
       return img;
     });
@@ -210,35 +222,33 @@ export default function Home() {
         setActiveCardIndex(newIndex);
       }
 
-      // If any transition animation is active, do not let the scroll handler
-      // overwrite the canvas with student frames.
+      // 2. Play walk-in scrub or idle movement loop based on scroll state
+      if (progress <= 0) {
+        hasPlayedStudentInRef.current = false;
+        stopMovementLoop();
+        const inFrames = studentInFramesRef.current;
+        if (inFrames.length > 0) {
+          drawFrame(inFrames, 0);
+        }
+        return;
+      }
+
+      if (!hasPlayedStudentInRef.current) {
+        hasPlayedStudentInRef.current = true;
+        setStudentInTrigger(prev => prev + 1);
+        return;
+      }
+
       if (isCharacterAnimatingRef.current) {
         stopMovementLoop();
         return;
       }
 
-      // 2. Play walk-in scrub or idle movement loop based on scroll state
       if (progress < 0.25) {
-        // Card 1 is active
-        if (progress < 0.10) {
-          // User is scrubbing the walk-in sequence ("1 Student" folder)
-          stopMovementLoop();
-          const inFrames = studentInFramesRef.current;
-          if (inFrames.length > 0) {
-            const localProgress = progress / 0.10;
-            const frameIndex = Math.min(
-              inFrames.length - 1,
-              Math.max(0, Math.round(localProgress * (inFrames.length - 1)))
-            );
-            drawFrame(inFrames, frameIndex);
-          }
-        } else {
-          // Walk-in is fully loaded; play the loop of "2 Student Movement"
-          startMovementLoop();
-        }
+        // Walk-in is fully loaded; play the loop of "2 Student Movement"
+        startMovementLoop();
       } else {
         // Scrolled past Card 1 (progress >= 0.25) — stop student movement loop.
-        // Teacher In auto-play is handled by its own useEffect.
         stopMovementLoop();
       }
     };
@@ -255,6 +265,123 @@ export default function Home() {
     };
   }, []);
 
+  // ── Scroll Snapping between Hero and "WHO IS THIS FOR" section ──
+  useEffect(() => {
+    let touchStartY = 0;
+
+    const handleWheel = (e) => {
+      const section = scrubSectionRef.current;
+      if (!section) return;
+
+      const targetY = section.getBoundingClientRect().top + window.scrollY;
+      const currentScrollY = window.scrollY;
+
+      if (isSnappingRef.current) {
+        e.preventDefault();
+        return;
+      }
+
+      const threshold = 15;
+
+      // Scroll Down Snap (DeltaY > 0)
+      if (currentScrollY < targetY - threshold && e.deltaY > 0) {
+        e.preventDefault();
+        isSnappingRef.current = true;
+
+        // Trigger Student In walk-in animation immediately
+        if (!hasPlayedStudentInRef.current) {
+          hasPlayedStudentInRef.current = true;
+          setStudentInTrigger(prev => prev + 1);
+        }
+
+        window.scrollTo({
+          top: targetY,
+          behavior: 'smooth'
+        });
+        setTimeout(() => {
+          isSnappingRef.current = false;
+        }, 1000);
+      }
+      // Scroll Up Snap (DeltaY < 0)
+      else if (currentScrollY <= targetY + threshold && currentScrollY > threshold && e.deltaY < 0) {
+        e.preventDefault();
+        isSnappingRef.current = true;
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+        setTimeout(() => {
+          isSnappingRef.current = false;
+        }, 1000);
+      }
+    };
+
+    const handleTouchStart = (e) => {
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e) => {
+      const section = scrubSectionRef.current;
+      if (!section) return;
+
+      if (isSnappingRef.current) {
+        e.preventDefault();
+        return;
+      }
+
+      const targetY = section.getBoundingClientRect().top + window.scrollY;
+      const currentScrollY = window.scrollY;
+      const touchCurrentY = e.touches[0].clientY;
+      const deltaY = touchStartY - touchCurrentY; // swipe up = scroll down
+
+      if (Math.abs(deltaY) < 10) return;
+
+      const threshold = 15;
+
+      // Scroll Down Snap (Swipe Up)
+      if (currentScrollY < targetY - threshold && deltaY > 0) {
+        e.preventDefault();
+        isSnappingRef.current = true;
+
+        // Trigger Student In walk-in animation immediately
+        if (!hasPlayedStudentInRef.current) {
+          hasPlayedStudentInRef.current = true;
+          setStudentInTrigger(prev => prev + 1);
+        }
+
+        window.scrollTo({
+          top: targetY,
+          behavior: 'smooth'
+        });
+        setTimeout(() => {
+          isSnappingRef.current = false;
+        }, 1000);
+      }
+      // Scroll Up Snap (Swipe Down)
+      else if (currentScrollY <= targetY + threshold && currentScrollY > threshold && deltaY < 0) {
+        e.preventDefault();
+        isSnappingRef.current = true;
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+        setTimeout(() => {
+          isSnappingRef.current = false;
+        }, 1000);
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, []);
+
   // ── Unified canvas animation controller ──
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -266,6 +393,8 @@ export default function Home() {
       cancelAnimationFrame(activeAnimRef.current);
       activeAnimRef.current = null;
     }
+
+    let delayTimeout = null;
 
     const prev = prevCardIndexRef.current;
     const current = activeCardIndex;
@@ -295,7 +424,13 @@ export default function Home() {
     let loopSequence = null;
     let movementFrameIdx = 0;
 
-    if (current === 1 && prev === 0) {
+    if (current === 0 && (prev === 0 || prev === null)) {
+      // Entering section from Hero: play Student In forward, then loop Student Movement
+      sequence = studentInFramesRef.current;
+      mode = 'forward_then_loop';
+      loopSequence = studentMovementFramesRef.current;
+      currentFrameIdx = 0;
+    } else if (current === 1 && prev === 0) {
       // Students → Educators: play Teacher In forward, then loop Teacher Movement
       sequence = teacherInFramesRef.current;
       mode = 'forward_then_loop';
@@ -433,16 +568,27 @@ export default function Home() {
       }
     };
 
-    activeAnimRef.current = requestAnimationFrame(animate);
+    const startDelay = (current === 0 && (prev === 0 || prev === null)) ? 150 : 0;
+
+    if (startDelay > 0) {
+      delayTimeout = setTimeout(() => {
+        activeAnimRef.current = requestAnimationFrame(animate);
+      }, startDelay);
+    } else {
+      activeAnimRef.current = requestAnimationFrame(animate);
+    }
 
     return () => {
+      if (delayTimeout) {
+        clearTimeout(delayTimeout);
+      }
       if (activeAnimRef.current) {
         cancelAnimationFrame(activeAnimRef.current);
         activeAnimRef.current = null;
       }
       isCharacterAnimatingRef.current = false;
     };
-  }, [activeCardIndex]);
+  }, [activeCardIndex, studentInTrigger]);
 
   // ── Card navigation: simply increment activeCardIndex ──
   const handleNextCard = () => {
@@ -484,7 +630,7 @@ export default function Home() {
     return () => ro.disconnect();
   }, []);
 
-  const menuItems = ['Features', 'How It Works', 'About', 'Product', 'Blogs'];
+  const menuItems = ['Home', 'Learn', 'Build', 'Invest', 'Hire/Adopt', 'About Us'];
 
   const toggleDropdown = (e) => {
     e.preventDefault();
@@ -617,41 +763,16 @@ export default function Home() {
         </a>
 
         <nav className="nav-menu-container">
-          {menuItems.map((item) => {
-            if (item === 'Features') {
-              return (
-                 <div key={item} className="nav-dropdown-wrapper" style={{ position: 'relative' }}>
-                  <button 
-                    onClick={toggleDropdown}
-                    className={`nav-menu-item ${activeMenu === item ? 'active' : ''}`}
-                    style={{ background: dropdownOpen ? 'var(--border-glass-hover)' : '' }}
-                  >
-                    {item}
-                    <svg className="nav-dropdown-icon" viewBox="0 0 24 24" width="10" height="10" style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'none' }}>
-                      <path d="M7 10l5 5 5-5H7z" />
-                    </svg>
-                  </button>
-                  {dropdownOpen && (
-                    <div className="nav-dropdown-menu">
-                      <a href="#analytics" className="nav-dropdown-link" onClick={() => { setActiveMenu('Features'); setDropdownOpen(false); }}>Analytics</a>
-                      <a href="#automation" className="nav-dropdown-link" onClick={() => { setActiveMenu('Features'); setDropdownOpen(false); }}>Automation</a>
-                      <a href="#integration" className="nav-dropdown-link" onClick={() => { setActiveMenu('Features'); setDropdownOpen(false); }}>Integrations</a>
-                    </div>
-                  )}
-                </div>
-              );
-            }
-            return (
-              <a
-                key={item}
-                href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
-                className={`nav-menu-item ${activeMenu === item ? 'active' : ''}`}
-                onClick={() => { setActiveMenu(item); setDropdownOpen(false); }}
-              >
-                {item}
-              </a>
-            );
-          })}
+          {menuItems.map((item) => (
+            <a
+              key={item}
+              href={`#${item.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+              className={`nav-menu-item ${activeMenu === item ? 'active' : ''}`}
+              onClick={() => { setActiveMenu(item); setDropdownOpen(false); }}
+            >
+              {item}
+            </a>
+          ))}
         </nav>
 
         <div className="navbar-actions">
