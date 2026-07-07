@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import Home from "./Pages/Home"
 import Learn from "./Pages/Learn/Learn"
+import Build from "./Pages/Build/Build"
 
 const router = createBrowserRouter([
   {
@@ -10,6 +11,10 @@ const router = createBrowserRouter([
   {
     path: "/learn",
     element: <Learn/>
+  },
+  {
+    path: "/build",
+    element: <Build/>
   }
 ])
 

@@ -6,17 +6,16 @@ export default function Navbar() {
   const menuItems = [
     { name: "Home", path: "/" },
     { name: "Learn", path: "/learn" },
-    { name: "Build", path: "/#build" },
+    { name: "Build", path: "/build" },
     { name: "Invest", path: "/#invest" },
     { name: "Hire/Adopt", path: "/#hire-adopt" },
     { name: "About Us", path: "/#about-us" },
   ];
 
   const getActiveMenu = () => {
-    if (location.pathname === "/learn") {
-      return "Learn";
-    } else if (location.pathname === "/") {
-      if (location.hash === "#build") return "Build";
+    if (location.pathname === "/learn") return "Learn";
+    if (location.pathname === "/build") return "Build";
+    if (location.pathname === "/") {
       if (location.hash === "#invest") return "Invest";
       if (location.hash === "#hire-adopt") return "Hire/Adopt";
       if (location.hash === "#about-us") return "About Us";
