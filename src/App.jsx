@@ -3,6 +3,7 @@ import Home from "./Pages/Home"
 import Learn from "./Pages/Learn/Learn"
 import Build from "./Pages/Build/Build"
 import Invest from "./Pages/Invest/Invest"
+import Hire from "./Pages/Hire/Hire"
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: "/invest",
     element: <Invest/>
+  },
+  {
+    path: "/hire",
+    element: <Hire/>
   }
 ])
 

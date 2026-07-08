@@ -8,7 +8,7 @@ export default function Navbar() {
     { name: "Learn", path: "/learn" },
     { name: "Build", path: "/build" },
     { name: "Invest", path: "/invest" },
-    { name: "Hire/Adopt", path: "/#hire-adopt" },
+    { name: "Hire/Adopt", path: "/hire" },
     { name: "About Us", path: "/#about-us" },
   ];
 
@@ -16,6 +16,7 @@ export default function Navbar() {
     if (location.pathname === "/learn") return "Learn";
     if (location.pathname === "/build") return "Build";
     if (location.pathname === "/invest") return "Invest";
+    if (location.pathname === "/hire") return "Hire/Adopt";
     if (location.pathname === "/") {
       if (location.hash === "#invest") return "Invest";
       if (location.hash === "#hire-adopt") return "Hire/Adopt";
