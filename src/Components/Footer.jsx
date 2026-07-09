@@ -10,7 +10,7 @@ export default function Footer() {
           <div className="footer-brand-section">
             <Link to="/" className="logo-container" style={{ textDecoration: 'none', marginBottom: '20px' }}>
               <div className="logo-icon">
-                <img src="/brain-logo.png" alt="AI for Everyone Logo" style={{ width: "62px", height: "62px", objectFit: "contain" }} />
+                <img src="/brain-logo.png" alt="AI for Everyone Logo" style={{ width: "48px", height: "48px", objectFit: "contain" }} />
               </div>
               <div className="logo-text-group">
                 <span className="logo-text">AI for Everyone</span>

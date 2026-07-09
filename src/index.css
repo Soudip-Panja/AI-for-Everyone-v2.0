@@ -26,7 +26,7 @@
   --font-serif: 'Playfair Display', Georgia, serif;
 
   /* Navbar Height */
-  --navbar-height: 88px;
+  --navbar-height: 72px;
 }
 
 * {
@@ -116,7 +116,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 60px;
+  padding: 12px 40px;
   position: fixed;
   top: 0;
   left: 0;
@@ -1032,7 +1032,7 @@ button {
    ========================================================================== */
 
 @media (max-width: 1199px) {
-  .navbar { padding: 24px 40px; }
+  .navbar { padding: 12px 30px; }
   .hero-section { padding: 30px 40px 140px 40px; }
 }
 
@@ -1062,9 +1062,9 @@ button {
 
 @media (max-width: 767px) {
   :root {
-    --navbar-height: 80px;
+    --navbar-height: 64px;
   }
-  .navbar { padding: 20px 24px; }
+  .navbar { padding: 10px 20px; }
   .nav-menu-container { display: none; }
   .hero-section {
     padding: 20px 24px 80px 24px;
