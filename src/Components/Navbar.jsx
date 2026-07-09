@@ -9,7 +9,8 @@ export default function Navbar() {
     { name: "Build", path: "/build" },
     { name: "Invest", path: "/invest" },
     { name: "Hire/Adopt", path: "/hire" },
-    { name: "About Us", path: "/#about-us" },
+    { name: "About Us", path: "/about-us" },
+    { name: "Contact Us", path: "/contact-us" },
   ];
 
   const getActiveMenu = () => {
@@ -17,10 +18,11 @@ export default function Navbar() {
     if (location.pathname === "/build") return "Build";
     if (location.pathname === "/invest") return "Invest";
     if (location.pathname === "/hire") return "Hire/Adopt";
+    if (location.pathname === "/about-us") return "About Us";
+    if (location.pathname === "/contact-us") return "Contact Us";
     if (location.pathname === "/") {
       if (location.hash === "#invest") return "Invest";
       if (location.hash === "#hire-adopt") return "Hire/Adopt";
-      if (location.hash === "#about-us") return "About Us";
       return "Home";
     }
     return "";
@@ -33,20 +35,7 @@ export default function Navbar() {
       <header className="navbar">
         <Link to="/" className="logo-container">
           <div className="logo-icon">
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="6" y="10" width="12" height="12" rx="3.5" fill="url(#nav-logo-grad-1)" transform="rotate(45 12 16)" />
-              <rect x="14" y="10" width="12" height="12" rx="3.5" fill="url(#nav-logo-grad-2)" transform="rotate(45 20 16)" />
-              <defs>
-                <linearGradient id="nav-logo-grad-1" x1="6" y1="10" x2="18" y2="22" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stopColor="#00f0ff" />
-                  <stop offset="100%" stopColor="#0072ff" />
-                </linearGradient>
-                <linearGradient id="nav-logo-grad-2" x1="14" y1="10" x2="26" y2="22" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stopColor="#0072ff" />
-                  <stop offset="100%" stopColor="#0052d4" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <img src="/brain-logo.png" alt="AI for Everyone Logo" style={{ width: "62px", height: "62px", objectFit: "contain" }} />
           </div>
           <div className="logo-text-group">
             <span className="logo-text">AI for Everyone</span>

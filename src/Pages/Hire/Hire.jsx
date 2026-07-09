@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import { 
@@ -22,7 +23,7 @@ export default function Hire() {
       <main className="hire-hero-section">
         <div className="hire-hero-content">
           <div className="hire-hero-left">
-            <span className="hire-step-badge">Step 4 & 5</span>
+            <span className="hire-step-badge">Step 4</span>
             <h1 className="hire-hero-title">
               Hire <span className="hire-hero-title-accent">Talent.</span><br />
               Adopt <span className="hire-hero-title-accent">Innovation.</span>
@@ -116,7 +117,7 @@ export default function Hire() {
                 </div>
               </div>
               
-              <a href="#job-portal" className="hire-portal-btn dark-btn">
+              <a href="https://jobs.aiforeveryone.ai/" target="_blank" rel="noopener noreferrer" className="hire-portal-btn dark-btn">
                 Visit Job Portal <ArrowRight size={16} />
               </a>
             </div>
@@ -151,7 +152,7 @@ export default function Hire() {
               </a>
             </div>
             <div className="hire-portal-right">
-              <img src="/Images/Hire Page/university_building.png" alt="University Building" className="hire-portal-building-img" />
+              <img src="/Images/Hire Page/student_portal.png" alt="AI Student Builder" className="hire-portal-student-img" />
             </div>
             {/* Robot standing outside */}
             <div className="hire-portal-robot-container">
@@ -252,11 +253,11 @@ export default function Hire() {
             </div>
           </div>
 
-          {/* Box 2: For Job Seekers */}
+          {/* Box 2: For Institutions */}
           <div className="hire-detail-box jobseekers-box">
-            <h2 className="hire-detail-box-title">For Job Seekers</h2>
+            <h2 className="hire-detail-box-title">For Institutions</h2>
             <p className="hire-detail-box-desc">
-              Land your dream AI role. We connect you with top companies and provide industry-relevant training, mentorship, and support.
+              Empower your students with industry-aligned AI training, hackathons, and placement support. Partner with us to bridge the campus-to-corporate gap.
             </p>
             
             <div className="hire-institution-split">
@@ -265,7 +266,7 @@ export default function Hire() {
                   <span className="hire-check-icon">
                     <CheckCircle2 size={16} fill="#0066ff" color="#ffffff" />
                   </span>
-                  AI Training & Certifications
+                  AI Curriculum Integration
                 </li>
                 <li>
                   <span className="hire-check-icon">
@@ -277,19 +278,19 @@ export default function Hire() {
                   <span className="hire-check-icon">
                     <CheckCircle2 size={16} fill="#0066ff" color="#ffffff" />
                   </span>
-                  Direct Placement Support
+                  Exclusive Placement Support
                 </li>
                 <li>
                   <span className="hire-check-icon">
                     <CheckCircle2 size={16} fill="#0066ff" color="#ffffff" />
                   </span>
-                  Mentorship & Live Projects
+                  Faculty Development Programs
                 </li>
                 <li>
                   <span className="hire-check-icon">
                     <CheckCircle2 size={16} fill="#0066ff" color="#ffffff" />
                   </span>
-                  Career Guidance & Support
+                  Collaborative AI Labs & Projects
                 </li>
               </ul>
               
@@ -297,6 +298,7 @@ export default function Hire() {
                 <img src="/Images/Hire Page/university_building.png" alt="University Building" className="hire-institution-building-img" />
               </div>
             </div>
+            <div className="hire-portal-dots"></div>
           </div>
         </section>
 
@@ -308,9 +310,8 @@ export default function Hire() {
               <p className="hire-cta-desc">Join thousands of companies and institutions building the future with AI.</p>
             </div>
             <div className="hire-cta-actions">
-              <a href="#join" className="hire-cta-btn btn-filled">Join Now</a>
-              <a href="#jobs" className="hire-cta-btn btn-outlined">Visit Job Portal</a>
-              <a href="#partner" className="hire-cta-btn btn-outlined">Partner With Us</a>
+              <Link to="/contact-us" className="hire-cta-btn btn-filled">Partner With Us</Link>
+              <a href="https://jobs.aiforeveryone.ai/" target="_blank" rel="noopener noreferrer" className="hire-cta-btn btn-outlined">Visit Job Portal</a>
             </div>
           </div>
         </section>

@@ -12,14 +12,43 @@ import {
   Building2, 
   Briefcase,
   ChevronRight,
-  Send
+  Send,
+  Coins,
+  Sprout,
+  Scale
 } from "lucide-react";
 import Navbar from "../../Components/Navbar";
+import Footer from "../../Components/Footer";
 import "./Invest.css";
 
 export default function Invest() {
   const [filter, setFilter] = useState("All");
   const [submitted, setSubmitted] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [hoveredStep, setHoveredStep] = useState(null);
+
+  useEffect(() => {
+    if (isHovered) return;
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % 5);
+    }, 2800);
+    return () => clearInterval(interval);
+  }, [isHovered]);
+
+  const handleMouseEnter = (index) => {
+    setIsHovered(true);
+    setHoveredStep(index);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setHoveredStep(null);
+  };
+
+  const isStepActive = (index) => {
+    return isHovered ? hoveredStep === index : activeStep === index;
+  };
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -272,9 +301,14 @@ export default function Invest() {
               </svg>
 
               {/* Step 01 — Submit */}
-              <div className="invest-hiw-step invest-hiw-step--up invest-hiw-anim" style={{"--delay":"0s"}}>
+              <div 
+                className={`invest-hiw-step invest-hiw-step--up invest-hiw-anim invest-step-1 ${isStepActive(0) ? "active" : ""}`} 
+                style={{"--delay":"0s"}}
+                onMouseEnter={() => handleMouseEnter(0)}
+                onMouseLeave={handleMouseLeave}
+              >
                 <div className="invest-hiw-num">01</div>
-                <div className="invest-hiw-bubble invest-hiw-bubble--active">
+                <div className="invest-hiw-bubble">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                     <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                   </svg>
@@ -287,7 +321,12 @@ export default function Invest() {
               </div>
 
               {/* Step 02 — Expert Review */}
-              <div className="invest-hiw-step invest-hiw-step--down invest-hiw-anim" style={{"--delay":"0.15s"}}>
+              <div 
+                className={`invest-hiw-step invest-hiw-step--down invest-hiw-anim invest-step-2 ${isStepActive(1) ? "active" : ""}`} 
+                style={{"--delay":"0.15s"}}
+                onMouseEnter={() => handleMouseEnter(1)}
+                onMouseLeave={handleMouseLeave}
+              >
                 <div className="invest-hiw-num">02</div>
                 <div className="invest-hiw-bubble">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -303,7 +342,12 @@ export default function Invest() {
               </div>
 
               {/* Step 03 — Pitch Day */}
-              <div className="invest-hiw-step invest-hiw-step--up invest-hiw-anim" style={{"--delay":"0.3s"}}>
+              <div 
+                className={`invest-hiw-step invest-hiw-step--up invest-hiw-anim invest-step-3 ${isStepActive(2) ? "active" : ""}`} 
+                style={{"--delay":"0.3s"}}
+                onMouseEnter={() => handleMouseEnter(2)}
+                onMouseLeave={handleMouseLeave}
+              >
                 <div className="invest-hiw-num">03</div>
                 <div className="invest-hiw-bubble">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -320,7 +364,12 @@ export default function Invest() {
               </div>
 
               {/* Step 04 — Funding Decision */}
-              <div className="invest-hiw-step invest-hiw-step--down invest-hiw-anim" style={{"--delay":"0.45s"}}>
+              <div 
+                className={`invest-hiw-step invest-hiw-step--down invest-hiw-anim invest-step-4 ${isStepActive(3) ? "active" : ""}`} 
+                style={{"--delay":"0.45s"}}
+                onMouseEnter={() => handleMouseEnter(3)}
+                onMouseLeave={handleMouseLeave}
+              >
                 <div className="invest-hiw-num">04</div>
                 <div className="invest-hiw-bubble invest-hiw-bubble--green">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -336,7 +385,12 @@ export default function Invest() {
               </div>
 
               {/* Step 05 — Marketplace Launch */}
-              <div className="invest-hiw-step invest-hiw-step--up invest-hiw-anim" style={{"--delay":"0.6s"}}>
+              <div 
+                className={`invest-hiw-step invest-hiw-step--up invest-hiw-anim invest-step-5 ${isStepActive(4) ? "active" : ""}`} 
+                style={{"--delay":"0.6s"}}
+                onMouseEnter={() => handleMouseEnter(4)}
+                onMouseLeave={handleMouseLeave}
+              >
                 <div className="invest-hiw-num">05</div>
                 <div className="invest-hiw-bubble">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -376,7 +430,7 @@ export default function Invest() {
 
               {/* Button only — no overlay, no text */}
               <div className="invest-marketplace-content">
-                <a href="#" className="invest-marketplace-btn">
+                <a href="https://marketplace.aiforeveryone.ai/" target="_blank" rel="noopener noreferrer" className="invest-marketplace-btn">
                   Visit A4E Marketplace →
                 </a>
               </div>
@@ -564,8 +618,8 @@ export default function Invest() {
           <div className="invest-industries-grid">
 
             {/* Healthcare */}
-            <div className="invest-industry-card">
-              <div className="invest-industry-icon invest-ind-indigo">
+            <div className="invest-industry-card invest-card-rose">
+              <div className="invest-industry-icon invest-ind-rose">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                   <line x1="12" y1="8" x2="12" y2="16"/>
@@ -577,23 +631,17 @@ export default function Invest() {
             </div>
 
             {/* FinTech */}
-            <div className="invest-industry-card">
+            <div className="invest-industry-card invest-card-indigo">
               <div className="invest-industry-icon invest-ind-indigo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <line x1="3" y1="22" x2="21" y2="22"/>
-                  <rect x="2" y="9" width="4" height="13"/>
-                  <rect x="10" y="5" width="4" height="17"/>
-                  <rect x="18" y="1" width="4" height="21"/>
-                  <path d="M5 9V6a7 7 0 0 1 14 0v3"/>
-                </svg>
+                <Coins size={28} strokeWidth={1.8} />
               </div>
               <h4 className="invest-industry-name">FinTech</h4>
               <p className="invest-industry-desc">AI to detect fraud, optimize risk &amp; automate financial services.</p>
             </div>
 
             {/* Education */}
-            <div className="invest-industry-card">
-              <div className="invest-industry-icon invest-ind-indigo">
+            <div className="invest-industry-card invest-card-purple">
+              <div className="invest-industry-icon invest-ind-purple">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                   <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
                   <path d="M6 12v5c3 3 9 3 12 0v-5"/>
@@ -604,21 +652,17 @@ export default function Invest() {
             </div>
 
             {/* Agriculture */}
-            <div className="invest-industry-card">
+            <div className="invest-industry-card invest-card-green">
               <div className="invest-industry-icon invest-ind-green">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path d="M2 22c1.25-4.5 4-7 8-8"/>
-                  <path d="M20 8c0 8-8 14-18 14"/>
-                  <path d="M20 8a8 8 0 0 0-8-8c0 8 8 8 8 8z"/>
-                </svg>
+                <Sprout size={28} strokeWidth={1.8} />
               </div>
               <h4 className="invest-industry-name">Agriculture</h4>
               <p className="invest-industry-desc">AI for precision farming, crop prediction &amp; resource optimization.</p>
             </div>
 
             {/* Retail */}
-            <div className="invest-industry-card">
-              <div className="invest-industry-icon invest-ind-indigo">
+            <div className="invest-industry-card invest-card-amber">
+              <div className="invest-industry-icon invest-ind-amber">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                   <circle cx="9" cy="21" r="1"/>
                   <circle cx="20" cy="21" r="1"/>
@@ -630,16 +674,9 @@ export default function Invest() {
             </div>
 
             {/* Legal */}
-            <div className="invest-industry-card">
-              <div className="invest-industry-icon invest-ind-indigo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <line x1="12" y1="3" x2="12" y2="21"/>
-                  <path d="M5 8l7-5 7 5"/>
-                  <path d="M3 12l4 4-4 4"/>
-                  <path d="M21 12l-4 4 4 4"/>
-                  <line x1="3" y1="16" x2="21" y2="16"/>
-                  <line x1="3" y1="20" x2="21" y2="20"/>
-                </svg>
+            <div className="invest-industry-card invest-card-teal">
+              <div className="invest-industry-icon invest-ind-teal">
+                <Scale size={28} strokeWidth={1.8} />
               </div>
               <h4 className="invest-industry-name">Legal</h4>
               <p className="invest-industry-desc">AI for contract analysis, legal research &amp; case prediction.</p>
@@ -647,39 +684,44 @@ export default function Invest() {
 
           </div>
         </section>
-        {/* ==================== STAY UPDATED ==================== */}
-        <section className="invest-newsletter-section">
-          <div className="invest-newsletter-container">
-            <div className="invest-newsletter-graphics">
-              <img 
-                src="/Images/Invest%20Page/mail-illustration.png" 
-                alt="Newsletter Mail Envelope and Paper Plane Illustration" 
-                className="invest-newsletter-image" 
-              />
+        {/* ==================== LMS Portal Promo ==================== */}
+        <section className="invest-lms-section">
+          <div className="invest-lms-card">
+
+            {/* Left Side: Graphic */}
+            <div className="invest-lms-graphics">
+              <img src="/Images/Invest Page/invest_lms_laptop.png" alt="LMS Portal Laptop" className="invest-lms-laptop-img" />
             </div>
-            <div className="invest-newsletter-text">
-              <h2 className="invest-newsletter-title">Stay Updated</h2>
-              <p className="invest-newsletter-desc">
-                Get notified about top AI startups, funding opportunities and investment insights.
+
+            {/* Center: Content */}
+            <div className="invest-lms-content">
+              <div className="invest-lms-tag">READY TO PITCH YOUR BIG IDEA?</div>
+              <h2 className="invest-lms-title">
+                Access Our <br />
+                <span className="invest-lms-title-accent">Pitch Hub</span>
+              </h2>
+              <p className="invest-lms-desc">
+                Pitch your ideas, connect with investors, and turn your vision into reality.
               </p>
             </div>
-            <div className="invest-newsletter-form">
-              <input 
-                type="email" 
-                placeholder="Enter your email" 
-                className="invest-newsletter-input" 
-              />
-              <button className="invest-newsletter-btn">
-                Subscribe <ArrowRight size={18} />
-              </button>
+
+            {/* Right Side: Actions */}
+            <div className="invest-lms-actions">
+              <a href="https://pitchub.aiforeveryone.ai/" target="_blank" rel="noopener noreferrer" className="invest-lms-btn" style={{ textDecoration: 'none' }}>
+                Go to Pitch Hub
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="btn-arrow-icon">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </a>
+              <span className="invest-lms-subtext">Pitch. Connect. Get Funded.</span>
             </div>
+
           </div>
         </section>
 
-        {/* ==================== FOOTER ==================== */}
-        <footer className="invest-footer">
-          <p>© 2026 AI for Everyone. All rights reserved. Securities offered through syndicate partners. Investments are subject to risk.</p>
-        </footer>
+
+        <Footer />
       </div>
     </>
   );

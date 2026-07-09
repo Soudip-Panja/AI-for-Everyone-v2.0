@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react";
 import Navbar from "../../Components/Navbar";
+import Footer from "../../Components/Footer";
 import "./Learn.css";
 
 export default function Learn() {
@@ -764,13 +765,13 @@ export default function Learn() {
 
             {/* Right Side: Actions */}
             <div className="learn-lms-actions">
-              <button className="learn-lms-btn">
+              <a href="https://lms.aiforeveryone.ai/auth/login?from=%2F" target="_blank" rel="noopener noreferrer" className="learn-lms-btn" style={{ textDecoration: 'none' }}>
                 Go to LMS Portal
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="btn-arrow-icon">
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                   <polyline points="12 5 19 12 12 19"></polyline>
                 </svg>
-              </button>
+              </a>
               <span className="learn-lms-subtext">Learn anytime, anywhere</span>
             </div>
 
@@ -778,6 +779,7 @@ export default function Learn() {
         </section>
 
       </div>
+      <Footer />
     </>
   );
 }

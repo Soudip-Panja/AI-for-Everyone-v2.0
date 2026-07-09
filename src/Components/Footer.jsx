@@ -1,4 +1,5 @@
 import { Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 import "./Footer.css";
 
 export default function Footer() {
@@ -7,9 +8,15 @@ export default function Footer() {
       <div className="footer-container">
         <div className="footer-top">
           <div className="footer-brand-section">
-            <div className="footer-logo">
-              <span className="footer-logo-blue">AI</span> FOR EVERYONE
-            </div>
+            <Link to="/" className="logo-container" style={{ textDecoration: 'none', marginBottom: '20px' }}>
+              <div className="logo-icon">
+                <img src="/brain-logo.png" alt="AI for Everyone Logo" style={{ width: "62px", height: "62px", objectFit: "contain" }} />
+              </div>
+              <div className="logo-text-group">
+                <span className="logo-text">AI for Everyone</span>
+                <span className="logo-subtitle">LEARN. BUILD. HIRE. INVEST</span>
+              </div>
+            </Link>
             <p className="footer-brand-desc">
               Empowering people and organizations to hire top AI talent and adopt innovative solutions for a better future.
             </p>
@@ -50,9 +57,9 @@ export default function Footer() {
               <ul>
                 <li><a href="/hire">Hire Talent</a></li>
                 <li><a href="/invest">Adopt AI Solutions</a></li>
-                <li><a href="/hire#job-portal">Job Portal</a></li>
-                <li><a href="/invest#marketplace">Marketplace</a></li>
-                <li><a href="/learn#lms">LMS Portal</a></li>
+                <li><a href="https://jobs.aiforeveryone.ai/" target="_blank" rel="noopener noreferrer">Job Portal</a></li>
+                <li><a href="https://marketplace.aiforeveryone.ai/" target="_blank" rel="noopener noreferrer">Marketplace</a></li>
+                <li><a href="https://lms.aiforeveryone.ai/auth/login?from=%2F" target="_blank" rel="noopener noreferrer">LMS Portal</a></li>
               </ul>
             </div>
             <div className="footer-links-col">
@@ -68,7 +75,7 @@ export default function Footer() {
             <div className="footer-links-col">
               <h4>Company</h4>
               <ul>
-                <li><a href="/#about-us">About Us</a></li>
+                <li><a href="/about-us">About Us</a></li>
                 <li><a href="/careers">Careers</a></li>
                 <li><a href="/partners">Partners</a></li>
                 <li><a href="/contact">Contact Us</a></li>
@@ -91,6 +98,9 @@ export default function Footer() {
         <div className="footer-bottom">
           <div className="footer-copyright">
             © 2025 AI FOR EVERYONE. All rights reserved.
+          </div>
+          <div className="footer-powered">
+            POWERED BY INTIME
           </div>
           <div className="footer-made-by">
             Made with <Heart size={14} className="footer-heart-icon" /> for the AI Community

@@ -341,12 +341,12 @@
   filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.12));
 }
 
-.hire-portal-building-img {
+.hire-portal-student-img {
   position: absolute;
-  right: 80px;
+  right: 30px;
   top: 50%;
   transform: translateY(-50%);
-  width: 190px;
+  width: 290px;
   max-width: none;
   height: auto;
   object-fit: contain;
@@ -423,12 +423,23 @@
 }
 
 /* Light card list */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .hire-portal-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 8px 0 16px 0;
+  gap: 10px;
+  margin: 12px 0 20px 0;
   padding: 0;
 }
 
@@ -436,18 +447,25 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  opacity: 0.9;
+  color: #3b3f5c;
+  opacity: 0;
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.hire-portal-list li:nth-child(1) { animation-delay: 0.1s; }
+.hire-portal-list li:nth-child(2) { animation-delay: 0.2s; }
+.hire-portal-list li:nth-child(3) { animation-delay: 0.3s; }
+
 .hire-list-bullet {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #4f46e5;
   display: inline-block;
   flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(79, 70, 229, 0.5);
 }
 
 /* Portal Buttons */
@@ -543,7 +561,7 @@
 /* Detailed Split Columns */
 .hire-details-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 45fr 55fr;
   gap: 32px;
 }
 
@@ -670,13 +688,64 @@
   z-index: 2;
 }
 
+@keyframes loopHighlight {
+  0%, 15% {
+    opacity: 1;
+    transform: translateX(8px);
+    color: #0f172a; /* Bold Slate/Black highlight */
+  }
+  20%, 95% {
+    opacity: 0.55;
+    transform: translateX(0);
+    color: #475569; /* Muted gray text */
+  }
+}
+
+@keyframes iconHighlight {
+  0%, 15% {
+    transform: scale(1.2);
+  }
+  20%, 95% {
+    transform: scale(1);
+  }
+}
+
 .hire-institution-checklist li {
   display: flex;
   align-items: center;
   gap: 12px;
   font-size: 0.98rem;
-  font-weight: 600;
-  color: #334155;
+  font-weight: 700; /* Bold font weight to prevent layout reflow shift */
+  color: #475569;
+  transition: all 0.5s ease;
+  animation: loopHighlight 10s infinite ease-in-out;
+}
+
+.hire-institution-checklist li .hire-check-icon {
+  transition: all 0.5s ease;
+  animation: iconHighlight 10s infinite ease-in-out;
+}
+
+/* Staggered Delay for Loop (10s total, 5 items = 2s intervals) */
+.hire-institution-checklist li:nth-child(1),
+.hire-institution-checklist li:nth-child(1) .hire-check-icon {
+  animation-delay: 0s;
+}
+.hire-institution-checklist li:nth-child(2),
+.hire-institution-checklist li:nth-child(2) .hire-check-icon {
+  animation-delay: -8s;
+}
+.hire-institution-checklist li:nth-child(3),
+.hire-institution-checklist li:nth-child(3) .hire-check-icon {
+  animation-delay: -6s;
+}
+.hire-institution-checklist li:nth-child(4),
+.hire-institution-checklist li:nth-child(4) .hire-check-icon {
+  animation-delay: -4s;
+}
+.hire-institution-checklist li:nth-child(5),
+.hire-institution-checklist li:nth-child(5) .hire-check-icon {
+  animation-delay: -2s;
 }
 
 .hire-check-icon {
@@ -688,10 +757,10 @@
 
 .hire-institution-img-container {
   position: absolute;
-  right: -48px;
-  bottom: -48px;
-  width: 320px;
-  height: 280px;
+  right: -60px;
+  bottom: -30px;
+  width: 450px;
+  height: 440px;
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
@@ -706,6 +775,8 @@
   object-position: bottom right;
   mix-blend-mode: multiply;
   filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.04));
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 55%);
+  mask-image: linear-gradient(to right, transparent 0%, black 55%);
 }
 
 /* CTA Banner Section */
@@ -790,8 +861,26 @@
   transform: translateY(-2px);
 }
 
+.hire-portal-dots {
+  position: absolute;
+  left: -10px;
+  right: auto;
+  bottom: -10px;
+  width: 140px;
+  height: 140px;
+  background-image: radial-gradient(rgba(139, 92, 246, 0.25) 2.5px, transparent 2.5px);
+  background-size: 15px 15px;
+  -webkit-mask-image: radial-gradient(circle at bottom left, black 25%, transparent 75%);
+  mask-image: radial-gradient(circle at bottom left, black 25%, transparent 75%);
+  z-index: 1;
+  pointer-events: none;
+}
+
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
+  .hire-portal-dots {
+    display: none;
+  }
   .hire-hero-content {
     flex-direction: column;
     align-items: center;
@@ -869,23 +958,46 @@
     padding: 32px;
     min-height: auto;
     gap: 32px;
+    position: relative;
   }
 
-  .hire-portal-right {
-    justify-content: center;
+  .hire-portal-left {
+    max-width: 100%;
     width: 100%;
   }
 
+  .hire-portal-right {
+    position: relative;
+    width: 100%;
+    height: auto;
+    justify-content: center;
+    top: auto;
+    bottom: auto;
+    right: auto;
+    margin-top: 16px;
+    display: flex;
+  }
+
   .hire-portal-img {
-    max-width: 180px;
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    max-width: 240px;
+    margin: 0 auto;
   }
 
   .hire-portal-video {
     max-width: 220px;
   }
 
-  .hire-portal-building-img {
-    max-width: 180px;
+  .hire-portal-student-img {
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    max-width: 240px;
+    margin: 0 auto;
   }
 
   .hire-portal-robot-container {
@@ -920,9 +1032,18 @@
     gap: 32px;
   }
 
+  .hire-institution-checklist {
+    max-width: 100%;
+  }
+
   .hire-institution-img-container {
-    justify-content: center;
+    position: relative;
+    right: auto;
+    bottom: auto;
     width: 100%;
+    height: 240px;
+    justify-content: center;
+    margin-top: 16px;
   }
 
   .hire-cta-content {

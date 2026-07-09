@@ -138,6 +138,14 @@
   margin: 0 4px;
 }
 
+.footer-powered {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #64748b; /* Slate 500 */
+  text-transform: uppercase;
+}
+
 /* Responsive Footer styles */
 @media (max-width: 1024px) {
   .footer-top {

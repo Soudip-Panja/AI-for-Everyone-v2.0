@@ -13,6 +13,7 @@ import {
   User 
 } from "lucide-react";
 import Navbar from "../../Components/Navbar";
+import Footer from "../../Components/Footer";
 import "./Build.css";
 
 export default function Build() {
@@ -410,7 +411,7 @@ export default function Build() {
           <div className="build-process-steps">
             {/* Step 1: Ideate */}
             <div 
-              className={`process-step ${isStepActive(0) ? "active" : ""}`}
+              className={`process-step step-ideate ${isStepActive(0) ? "active" : ""}`}
               onMouseEnter={() => handleMouseEnter(0)}
               onMouseLeave={handleMouseLeave}
             >
@@ -422,7 +423,7 @@ export default function Build() {
                   <div className="arrow-line-dotted"></div>
                   <div className="arrow-head">
                     <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
-                      <path d="M2 2L6 6L2 10" stroke="#6366f1" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M2 2L6 6L2 10" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                 </div>
@@ -435,7 +436,7 @@ export default function Build() {
 
             {/* Step 2: Plan */}
             <div 
-              className={`process-step ${isStepActive(1) ? "active" : ""}`}
+              className={`process-step step-plan ${isStepActive(1) ? "active" : ""}`}
               onMouseEnter={() => handleMouseEnter(1)}
               onMouseLeave={handleMouseLeave}
             >
@@ -447,7 +448,7 @@ export default function Build() {
                   <div className="arrow-line-dotted"></div>
                   <div className="arrow-head">
                     <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
-                      <path d="M2 2L6 6L2 10" stroke="#6366f1" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M2 2L6 6L2 10" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                 </div>
@@ -460,7 +461,7 @@ export default function Build() {
 
             {/* Step 3: Build */}
             <div 
-              className={`process-step ${isStepActive(2) ? "active" : ""}`}
+              className={`process-step step-build ${isStepActive(2) ? "active" : ""}`}
               onMouseEnter={() => handleMouseEnter(2)}
               onMouseLeave={handleMouseLeave}
             >
@@ -472,7 +473,7 @@ export default function Build() {
                   <div className="arrow-line-dotted"></div>
                   <div className="arrow-head">
                     <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
-                      <path d="M2 2L6 6L2 10" stroke="#6366f1" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M2 2L6 6L2 10" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                 </div>
@@ -485,7 +486,7 @@ export default function Build() {
 
             {/* Step 4: Test */}
             <div 
-              className={`process-step ${isStepActive(3) ? "active" : ""}`}
+              className={`process-step step-test ${isStepActive(3) ? "active" : ""}`}
               onMouseEnter={() => handleMouseEnter(3)}
               onMouseLeave={handleMouseLeave}
             >
@@ -497,7 +498,7 @@ export default function Build() {
                   <div className="arrow-line-dotted"></div>
                   <div className="arrow-head">
                     <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
-                      <path d="M2 2L6 6L2 10" stroke="#6366f1" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M2 2L6 6L2 10" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                 </div>
@@ -510,7 +511,7 @@ export default function Build() {
 
             {/* Step 5: Deploy & Showcase */}
             <div 
-              className={`process-step ${isStepActive(4) ? "active" : ""}`}
+              className={`process-step step-deploy ${isStepActive(4) ? "active" : ""}`}
               onMouseEnter={() => handleMouseEnter(4)}
               onMouseLeave={handleMouseLeave}
             >
@@ -590,7 +591,16 @@ export default function Build() {
             </div>
 
             <div className="achieve-right">
-              <img src="/achieve_illustration.png" alt="Achievements" className="achieve-illustration-img" />
+              <div className="achieve-video-container">
+                <video 
+                  src="/Videos/Build Page/2 Target video.mp4" 
+                  autoPlay 
+                  muted 
+                  loop 
+                  playsInline 
+                  className="achieve-video"
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -769,6 +779,7 @@ export default function Build() {
         </section>
 
       </div>
+      <Footer />
     </>
   );
 }
