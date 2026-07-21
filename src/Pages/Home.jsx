@@ -796,44 +796,6 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Partners Row (Below Stats Cards) */}
-            <div className="partners-container">
-              <div className="partners-badge">SUPPORTED BY LEADING SYSTEMS</div>
-              <div className="partners-logos-wrapper">
-                <div className="partner-logo-item">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="partner-logo-svg">
-                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
-                    <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
-                    <line x1="6" y1="6" x2="6.01" y2="6" />
-                    <line x1="6" y1="18" x2="6.01" y2="18" />
-                    <line x1="10" y1="6" x2="10.01" y2="6" />
-                    <line x1="10" y1="18" x2="10.01" y2="18" />
-                  </svg>
-                  <span className="partner-logo-name">INTIME IT SERVICES</span>
-                </div>
-                <div className="partner-logo-item">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="partner-logo-svg">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    <polyline points="9 11 11 13 15 9" />
-                  </svg>
-                  <span className="partner-logo-name">ICMAI STRATEGIC PARTNER</span>
-                </div>
-                <div className="partner-logo-item">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="partner-logo-svg">
-                    <circle cx="12" cy="12" r="10" />
-                    <polygon points="12 8 13.85 11.83 18.1 12.45 15.02 15.46 15.75 19.69 12 17.77 8.25 19.69 8.98 15.46 5.9 12.45 10.15 11.83 12 8" />
-                  </svg>
-                  <span className="partner-logo-name">NASSCOM-JUDGED ARENA</span>
-                </div>
-                <div className="partner-logo-item">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="partner-logo-svg">
-                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                    <polyline points="17 6 23 6 23 12" />
-                  </svg>
-                  <span className="partner-logo-name">HALDIA CO-FUNDED</span>
-                </div>
-              </div>
-            </div>
 
           </div>
 
