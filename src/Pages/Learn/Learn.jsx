@@ -146,7 +146,7 @@ export default function Learn() {
             <div className="learn-video-glow"></div>
             <div className="learn-video-container">
               <video 
-                src="/Videos/Learning Page/1 Learning.mp4" 
+                src="/Videos/2 Learn Page/1 Learning.webm" 
                 autoPlay 
                 muted 
                 loop 
@@ -517,7 +517,7 @@ export default function Learn() {
                 <div className="learn-skills-video-container">
                   <video 
                     ref={brainVideoRef}
-                    src="/Videos/Learning Page/2 Brain.mp4" 
+                    src="/Videos/2 Learn Page/2 Brain.webm" 
                     autoPlay 
                     muted 
                     playsInline 
