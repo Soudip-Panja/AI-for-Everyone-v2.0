@@ -1,7 +1,64 @@
-import { useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import "./Learn.css";
+
+function AnimatedCounter({ target, suffix = "", duration = 2000 }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    let animationFrameId;
+    let observer;
+    const currentRef = ref.current;
+
+    const startAnimation = () => {
+      let startTime = null;
+      const step = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        setCount(Math.floor(easeProgress * target));
+
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(step);
+        } else {
+          setCount(target);
+        }
+      };
+      animationFrameId = requestAnimationFrame(step);
+    };
+
+    if (currentRef) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              startAnimation();
+              if (currentRef && observer) observer.unobserve(currentRef);
+            }
+          });
+        },
+        { threshold: 0.05, rootMargin: "0px 0px 30px 0px" }
+      );
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (observer && currentRef) observer.unobserve(currentRef);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  }, [target, duration]);
+
+  return <span ref={ref}>{count}{suffix}</span>;
+}
+
+const statsData = [
+  { value: 10, suffix: "K+", label: "Learners Trained" },
+  { value: 50, suffix: "+", label: "AI Courses" },
+  { value: 500, suffix: "+", label: "Industry Mentors" },
+  { value: 95, suffix: "%", label: "Certification Success" },
+];
 
 export default function Learn() {
   const brainVideoRef = useRef(null);
@@ -21,6 +78,30 @@ export default function Learn() {
       carouselRef.current.scrollBy({ left: 320, behavior: "smooth" });
     }
   };
+
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.05,
+      rootMargin: "0px 0px 50px 0px",
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+        }
+      });
+    }, observerOptions);
+
+    const elements = document.querySelectorAll(
+      ".reveal-on-scroll, .reveal-left, .reveal-right, .reveal-scale, .reveal-stagger"
+    );
+    elements.forEach((el) => observer.observe(el));
+
+    return () => {
+      elements.forEach((el) => observer.unobserve(el));
+    };
+  }, []);
 
   useEffect(() => {
     const video = brainVideoRef.current;
@@ -79,20 +160,20 @@ export default function Learn() {
           
           {/* Left Side: Content */}
           <div className="learn-hero-left">
-            <div className="learn-step-badge">Step 1: Learn</div>
+            <div className="learn-step-badge hero-animate-badge">Step 1: Learn</div>
             
-            <h1 className="learn-hero-title">
+            <h1 className="learn-hero-title hero-animate-title">
               Learn <span className="accent-grad">AI.</span><br />
               Shape the Future.
             </h1>
             
-            <p className="learn-hero-desc">
+            <p className="learn-hero-desc hero-animate-desc">
               Master AI from industry experts through our structured, hands-on programs. 
               Get certified with credentials that are recognized by top companies worldwide.
             </p>
             
             {/* Features Capsule */}
-            <div className="learn-features-container">
+            <div className="learn-features-container hero-animate-features">
               <div className="learn-features-list">
                 
                 <div className="learn-feature-item">
@@ -142,7 +223,7 @@ export default function Learn() {
           </div>
 
           {/* Right Side: Video Block */}
-          <div className="learn-hero-right">
+          <div className="learn-hero-right hero-animate-video">
             <div className="learn-video-glow"></div>
             <div className="learn-video-container">
               <video 
@@ -160,42 +241,29 @@ export default function Learn() {
 
         {/* ==================== Stats Section ==================== */}
         <section className="learn-metrics-section">
-          <div className="learn-metrics-capsule">
-            
-            <div className="learn-metric-item">
-              <span className="learn-metric-value">10K+</span>
-              <span className="learn-metric-label">Learners Trained</span>
-            </div>
-
-            <div className="learn-metric-item">
-              <span className="learn-metric-value">50+</span>
-              <span className="learn-metric-label">AI Courses</span>
-            </div>
-
-            <div className="learn-metric-item">
-              <span className="learn-metric-value">500+</span>
-              <span className="learn-metric-label">Industry Mentors</span>
-            </div>
-
-            <div className="learn-metric-item">
-              <span className="learn-metric-value">95%</span>
-              <span className="learn-metric-label">Certification Success</span>
-            </div>
-
+          <div className="learn-metrics-capsule reveal-scale">
+            {statsData.map((item, index) => (
+              <div className="learn-metric-item" key={index}>
+                <span className="learn-metric-value">
+                  <AnimatedCounter target={item.value} suffix={item.suffix} />
+                </span>
+                <span className="learn-metric-label">{item.label}</span>
+              </div>
+            ))}
           </div>
         </section>
 
         {/* ==================== How You Can Learn Section ==================== */}
         <section className="learn-modes-section">
           
-          <div className="learn-modes-header">
+          <div className="learn-modes-header reveal-on-scroll">
             <h2 className="learn-modes-title">How You Can Learn With Us</h2>
             <p className="learn-modes-subtitle">
               Flexible learning modes designed for every learner, everywhere.
             </p>
           </div>
 
-          <div className="learn-modes-grid">
+          <div className="learn-modes-grid reveal-stagger">
 
             {/* Card 1: Online Live Classes */}
             <div className="learn-mode-card">
@@ -339,15 +407,15 @@ export default function Learn() {
 
         {/* ==================== What You Achieve Section ==================== */}
         <section className="learn-achieve-section">
-          <div className="learn-achieve-card">
-            <div className="learn-achieve-header">
+          <div className="learn-achieve-card reveal-scale">
+            <div className="learn-achieve-header reveal-on-scroll">
               <h2 className="learn-achieve-title">What You Achieve After Learning AI</h2>
               <p className="learn-achieve-subtitle">
                 Our programs are designed to give you real-world skills and future-ready career opportunities.
               </p>
             </div>
 
-            <div className="learn-achieve-grid">
+            <div className="learn-achieve-grid reveal-stagger">
               <div className="learn-achieve-item">
                 <div className="learn-achieve-icon-wrap">
                   <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -421,10 +489,10 @@ export default function Learn() {
 
         {/* ==================== Skills You Gain Section ==================== */}
         <section className="learn-skills-section">
-          <div className="learn-skills-card">
+          <div className="learn-skills-card reveal-scale">
             <div className="learn-skills-layout">
               {/* Left Side: Content & List */}
-              <div className="learn-skills-left">
+              <div className="learn-skills-left reveal-left">
                 <h2 className="learn-skills-title">Skills You Gain</h2>
                 <p className="learn-skills-subtitle">
                   Future-ready skills that empower you to solve real-world problems and build intelligent solutions.
@@ -512,7 +580,7 @@ export default function Learn() {
               </div>
 
               {/* Right Side: Brain Video Block */}
-              <div className="learn-skills-right">
+              <div className="learn-skills-right reveal-right">
                 <div className="learn-skills-video-glow"></div>
                 <div className="learn-skills-video-container">
                   <video 
@@ -531,14 +599,14 @@ export default function Learn() {
 
         {/* ==================== Impact Section ==================== */}
         <section className="learn-impact-section">
-          <div className="learn-impact-header">
+          <div className="learn-impact-header reveal-on-scroll">
             <h2 className="learn-impact-title">Impact in Your Life</h2>
             <p className="learn-impact-subtitle">
               AI skills can transform your career, productivity, and impact.
             </p>
           </div>
 
-          <div className="learn-impact-grid">
+          <div className="learn-impact-grid reveal-stagger">
             {/* Card 1 */}
             <div className="learn-impact-card">
               <div className="learn-impact-image-wrap">
@@ -638,7 +706,7 @@ export default function Learn() {
 
         {/* ==================== Learn From The Best Section ==================== */}
         <section className="learn-instructors-section">
-          <div className="learn-instructors-header">
+          <div className="learn-instructors-header reveal-on-scroll">
             <h2 className="learn-instructors-title">Learn From The Best</h2>
             <p className="learn-instructors-subtitle">
               Industry experts and AI practitioners who teach what works in the real world.
@@ -646,7 +714,7 @@ export default function Learn() {
           </div>
 
           <div className="learn-instructors-grid-wrap">
-            <div className="learn-instructors-grid">
+            <div className="learn-instructors-grid reveal-stagger">
               {/* Card 1 */}
               <div className="learn-instructor-card">
                 <div className="learn-instructor-avatar-wrap">
@@ -747,7 +815,7 @@ export default function Learn() {
 
         {/* ==================== LMS Promo Section ==================== */}
         <section className="learn-lms-section">
-          <div className="learn-lms-card">
+          <div className="learn-lms-card reveal-scale">
             
             {/* Left Side: Graphic */}
             <div className="learn-lms-graphics">
