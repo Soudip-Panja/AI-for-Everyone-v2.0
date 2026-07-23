@@ -2671,3 +2671,189 @@ button {
 .enterprise-card-btn:hover svg {
   transform: translateX(4px);
 }
+
+/* ==================== Manifesto Section ==================== */
+/* The section IS the card — no black wrapper, no outer container */
+.manifesto-section {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 48px;
+  background: #060913;
+  color: #f8fafc;
+  overflow: hidden;
+  box-sizing: border-box;
+  /* Initial rounded top corners set by GSAP */
+  border-radius: 48px 48px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  will-change: transform, border-radius;
+}
+
+.manifesto-card-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.18) 0%, rgba(99, 102, 241, 0.08) 45%, transparent 75%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.manifesto-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 80px;
+  align-items: center;
+  position: relative;
+  z-index: 3;
+  will-change: transform, opacity, filter;
+}
+
+/* Left Column */
+.manifesto-left {
+  flex: 1.1;
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+}
+
+.manifesto-eyebrow {
+  font-family: var(--font-mono, 'Plus Jakarta Sans', monospace, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #d97706; /* Amber / Gold accent */
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.manifesto-title {
+  font-family: 'Playfair Display', Georgia, Cambria, serif;
+  font-size: 3.2rem;
+  line-height: 1.18;
+  font-weight: 400;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+}
+
+.manifesto-title-italic {
+  font-style: italic;
+  font-weight: 400;
+  color: #d97706; /* Gold italic accent */
+  display: inline-block;
+}
+
+.manifesto-meta {
+  font-family: var(--font-mono, 'Plus Jakarta Sans', monospace, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #475569; /* Slate 600 */
+  text-transform: uppercase;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+/* Right Column */
+.manifesto-right {
+  flex: 1.3;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+}
+
+.manifesto-lead {
+  font-size: 1.12rem;
+  line-height: 1.7;
+  color: #94a3b8; /* Slate 400 */
+  margin-bottom: 20px;
+}
+
+.manifesto-lead strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.manifesto-body {
+  font-size: 1.02rem;
+  line-height: 1.7;
+  color: #94a3b8; /* Slate 400 */
+  margin-bottom: 36px;
+}
+
+.manifesto-quote {
+  border-left: 2.5px solid #d97706;
+  padding-left: 20px;
+  margin: 0 0 28px 0;
+  font-style: italic;
+  font-size: 1.08rem;
+  line-height: 1.6;
+  color: #f1f5f9; /* Slate 100 */
+}
+
+.manifesto-author {
+  font-family: var(--font-mono, 'Plus Jakarta Sans', monospace, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #d97706; /* Amber / Gold */
+  text-transform: uppercase;
+}
+
+/* Responsive Manifesto Section */
+@media (max-width: 1024px) {
+  .manifesto-container {
+    gap: 48px;
+  }
+  .manifesto-title {
+    font-size: 2.6rem;
+  }
+}
+
+@media (max-width: 868px) {
+  .manifesto-section {
+    min-height: 100vh;
+    padding: 80px 24px;
+    height: auto;
+  }
+  .manifesto-container {
+    flex-direction: column;
+    gap: 40px;
+    align-items: flex-start;
+  }
+  .manifesto-left,
+  .manifesto-right {
+    max-width: 100%;
+  }
+  .manifesto-meta {
+    margin-top: 24px;
+  }
+}
+
+@media (max-width: 520px) {
+  .manifesto-section {
+    padding: 56px 20px;
+  }
+  .manifesto-title {
+    font-size: 2.1rem;
+  }
+  .manifesto-lead {
+    font-size: 1rem;
+  }
+  .manifesto-body {
+    font-size: 0.95rem;
+  }
+  .manifesto-quote {
+    font-size: 0.98rem;
+  }
+}
+

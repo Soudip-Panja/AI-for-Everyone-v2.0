@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
+import ManifestoSection from '../Components/ManifestoSection';
 
 export default function Home() {
   const [activeCardIndex, setActiveCardIndex] = useState(0);
@@ -1285,6 +1286,10 @@ export default function Home() {
       </div>{/* end student-content-overlay */}
     </div>{/* end student-in-sticky */}
   </section>
+
+  {/* ==================== Manifesto Section ==================== */}
+  <ManifestoSection />
+
   <Footer />
   </>
   );
