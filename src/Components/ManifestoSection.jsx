@@ -15,59 +15,28 @@ export default function ManifestoSection() {
 
     if (!section || !textContent) return;
 
-    // Set initial state: section starts shifted down below viewport, rounded top corners only
-    gsap.set(section, {
-      y: '100vh',
-      borderRadius: '48px 48px 0 0',
-    });
-
+    // NO pin, NO y: '100vh', NO slide-up.
+    // Section sits in normal document flow immediately after GridTunnelSection.
+    // Only animate the inner text content on scroll-enter.
     gsap.set(textContent, {
-      y: 150,
-      scale: 1.4,
+      y: 40,
       opacity: 0,
-      filter: 'blur(10px)',
+      filter: 'blur(6px)',
     });
 
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
+      gsap.to(textContent, {
+        y: 0,
+        opacity: 1,
+        filter: 'blur(0px)',
+        ease: 'power3.out',
+        duration: 1,
         scrollTrigger: {
           trigger: section,
-          start: 'top bottom',   // when section top reaches viewport bottom
-          end: '+=200%',
-          pin: true,
-          scrub: 1.2,
-          anticipatePin: 1,
-          pinSpacing: true,
-          invalidateOnRefresh: true,
-        }
-      });
-
-      // Phase 1: The entire section slides up from below — it IS the card.
-      // Simultaneously, rounded corners reduce as it fills the screen.
-      tl.to(section, {
-        y: 0,
-        borderRadius: '32px 32px 0 0',
-        ease: 'power2.out',
-        duration: 1
-      });
-
-      // Phase 2: Text rises from bottom with scale + blur animation
-      tl.to(
-        textContent,
-        {
-          y: 0,
-          scale: 1.0,
-          opacity: 1,
-          filter: 'blur(0px)',
-          ease: 'power3.out',
-          duration: 1.2
+          start: 'top 85%',
+          toggleActions: 'play none none none',
         },
-        '-=0.5'
-      );
-
-      // Phase 3: Pinned hold while text stays centered
-      tl.to({}, { duration: 0.8 });
-
+      });
     }, section);
 
     return () => ctx.revert();

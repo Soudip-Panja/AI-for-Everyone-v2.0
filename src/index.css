@@ -2690,10 +2690,8 @@ button {
   color: #f8fafc;
   overflow: hidden;
   box-sizing: border-box;
-  /* Initial rounded top corners set by GSAP */
-  border-radius: 48px 48px 0 0;
+  border-radius: 32px 32px 0 0;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
-  will-change: transform, border-radius;
 }
 
 .manifesto-card-glow {
