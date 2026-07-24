@@ -218,6 +218,7 @@ const cardsData = [
 
 export default function GridTunnelSection() {
   const sectionRef = useRef(null);
+  const stickyRef = useRef(null);
   const canvasRef = useRef(null);
   const textStageRef = useRef(null);
 
@@ -237,8 +238,8 @@ export default function GridTunnelSection() {
   // 1. Canvas 3D Tunnel Grid Renderer
   useEffect(() => {
     const canvas = canvasRef.current;
-    const section = sectionRef.current;
-    if (!canvas || !section) return;
+    const sticky = stickyRef.current;
+    if (!canvas || !sticky) return;
 
     const ctx = canvas.getContext('2d');
     let animFrameId = null;
@@ -247,8 +248,8 @@ export default function GridTunnelSection() {
     let ch = 0;
 
     const setupCanvas = () => {
-      const w = section.clientWidth;
-      const h = section.clientHeight;
+      const w = sticky.clientWidth;
+      const h = sticky.clientHeight;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = w * dpr;
       canvas.height = h * dpr;
@@ -367,7 +368,7 @@ export default function GridTunnelSection() {
     const resizeObserver = new ResizeObserver(() => {
       setupCanvas();
     });
-    resizeObserver.observe(section);
+    resizeObserver.observe(sticky);
 
     return () => {
       if (animFrameId) cancelAnimationFrame(animFrameId);
@@ -421,17 +422,14 @@ export default function GridTunnelSection() {
         }
       });
 
-      // Single ScrollTrigger Pinned Timeline — 3 phases only (entrance + card scroll)
-      // end: '+=756%' = 84% × 900% (phase 3B ends at 0.84 of original timeline)
-      // Pin releases the moment the last card settles. No exit phase.
+      // Single ScrollTrigger Timeline tracked over native sticky container scroll
+      // Pinning is handled natively by CSS position: sticky on .grid-tunnel-sticky
       const scrollTl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: '+=756%',
-          pin: true,
-          anticipatePin: 1,
-          scrub: 0.8,
+          end: 'bottom bottom',
+          scrub: true,
           onUpdate: (self) => {
             scrollProgressRef.current = self.progress;
           }
@@ -515,180 +513,182 @@ export default function GridTunnelSection() {
 
   return (
     <section ref={sectionRef} className="grid-tunnel-section">
-      <canvas ref={canvasRef} className="grid-tunnel-canvas" />
+      <div ref={stickyRef} className="grid-tunnel-sticky">
+        <canvas ref={canvasRef} className="grid-tunnel-canvas" />
 
-      {/* Outer HUD Corner Brackets */}
-      <div className="hud-corner-bracket corner-top-left" />
-      <div className="hud-corner-bracket corner-top-right" />
-      <div className="hud-corner-bracket corner-bottom-left" />
-      <div className="hud-corner-bracket corner-bottom-right" />
+        {/* Outer HUD Corner Brackets */}
+        <div className="hud-corner-bracket corner-top-left" />
+        <div className="hud-corner-bracket corner-top-right" />
+        <div className="hud-corner-bracket corner-bottom-left" />
+        <div className="hud-corner-bracket corner-bottom-right" />
 
-      {/* Floating HUD Tech Accents */}
-      <div className="left-dot-matrix">
-        {Array.from({ length: 18 }).map((_, i) => (
-          <span key={i} className="dot-matrix-node" />
-        ))}
-      </div>
-
-      <div className="top-plus-sign">+</div>
-
-      <div className="bottom-data-bar">
-        <span />
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
-
-      <div ref={textStageRef} className="grid-tunnel-stage">
-        
-        {/* ================= TEXT BLOCK 1 ================= */}
-        <div ref={textGroup1Ref} className="grid-tunnel-text-group group-1">
-          {/* Line 1: SOME COMPANIES */}
-          <div ref={line1Ref} className="grid-tunnel-line line-1">
-            <span>S</span>
-            <GlobeFlareIcon />
-            <span>ME</span>
-            <span className="word-space">&nbsp;</span>
-            <span className="blue-text-glow">COMPANIES</span>
-          </div>
-
-          {/* Line 2: NEED TO LEARN AI. */}
-          <div ref={line2Ref} className="grid-tunnel-line line-2">
-            <span>NEED TO</span>
-            <span className="word-space">&nbsp;</span>
-            <span className="blue-text-glow">LEARN AI.</span>
-            <TechBrainGraphic />
-          </div>
-
-          {/* Line 3: SOME NEED IT BUILT. */}
-          <div ref={line3Ref} className="grid-tunnel-line line-3">
-            <IsometricCubesGraphic />
-            <span>SOME NEED IT</span>
-            <span className="word-space">&nbsp;</span>
-            <span className="blue-text-glow">BUILT.</span>
-          </div>
-
-          {/* Line 4: WE DO BOTH. (Sci-Fi Glass Banner) */}
-          <div ref={line4Ref} className="grid-tunnel-line line-4">
-            <div className="sci-fi-banner">
-              <div className="banner-trail-left" />
-              <div className="banner-content">
-                <span>WE DO</span>
-                <span className="word-space">&nbsp;</span>
-                <span className="blue-text-glow">B</span>
-                <CheckTargetIcon />
-                <span className="blue-text-glow">TH.</span>
-              </div>
-              <div className="banner-trail-right" />
-            </div>
-          </div>
-        </div>
-
-        {/* ================= TEXT BLOCK 2 ================= */}
-        <div ref={textGroup2Ref} className="grid-tunnel-text-group group-2">
-
-          {/* Left Side Chevrons & HUD Trace */}
-          <div className="side-hud-left">
-            <span className="hud-line-trace" />
-            <span className="hud-chevrons">›››</span>
-          </div>
-
-          {/* Right Side Chevrons & HUD Trace */}
-          <div className="side-hud-right">
-            <span className="hud-chevrons">›››</span>
-            <span className="hud-line-trace" />
-          </div>
-
-          <div className="deploy-today-container">
-            {/* Line 1: For organizations */}
-            <h3 className="deploy-line-1">For organizations</h3>
-
-            {/* Line 2: ready to */}
-            <h2 className="deploy-line-2">ready to</h2>
-
-            {/* Line 3: deploy AI today */}
-            <h1 className="deploy-line-3">deploy AI today</h1>
-
-            {/* Bottom Tech Divider Line with Notch & 3 Dots */}
-            <div className="deploy-tech-divider">
-              <span className="divider-line-left" />
-              <div className="divider-notch">
-                <span className="notch-dot" />
-                <span className="notch-dot" />
-                <span className="notch-dot" />
-              </div>
-              <span className="divider-line-right" />
-            </div>
-          </div>
-
-        </div>
-
-        {/* ================= STEP 3: 6 SERVICES CARDS ================= */}
-        <div ref={cardsStageRef} className="tunnel-cards-stage">
-          {cardsData.map((card, idx) => (
-            <div
-              key={card.id}
-              ref={(el) => (cardsRef.current[idx] = el)}
-              className={`tunnel-card card-${card.id}`}
-              style={{
-                '--card-accent': card.accentColor
-              }}
-            >
-              {/* Background Gradient & Glow Mesh */}
-              <div className="card-bg-gradient" style={{ background: card.gradient }} />
-              <div className="card-glow-mesh" style={{ background: card.bgPattern }} />
-
-              {/* Decorative Tech Grid Lines */}
-              <div className="card-grid-overlay" />
-
-              {/* Card Content Overlay */}
-              <div className="card-content">
-                
-                {/* Header: Badge Only */}
-                <div className="card-header-row">
-                  <span className="card-badge">{card.badge}</span>
-                </div>
-
-                {/* For Audience Sub-badge */}
-                <div className="card-for-badge">
-                  <span className="for-label">FOR:</span> {card.forWho}
-                </div>
-
-                {/* Title */}
-                <h3 className="card-title">{card.title}</h3>
-
-                {/* You Get Deliverables List */}
-                <div className="card-deliverables-box">
-                  <span className="deliverables-label">YOU GET</span>
-                  <ul className="deliverables-list">
-                    {card.youGet.map((item, i) => (
-                      <li key={i}>
-                        <span className="deliverable-bullet" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Outcome Statement */}
-                <div className="card-outcome-box">
-                  <span className="outcome-label">OUTCOME</span>
-                  <p className="outcome-text">{card.outcome}</p>
-                </div>
-
-                {/* Footer Action Button */}
-                <div className="card-footer-row">
-                  <button className="card-cta-btn">
-                    <span>{card.cta}</span>
-                  </button>
-                </div>
-
-              </div>
-            </div>
+        {/* Floating HUD Tech Accents */}
+        <div className="left-dot-matrix">
+          {Array.from({ length: 18 }).map((_, i) => (
+            <span key={i} className="dot-matrix-node" />
           ))}
         </div>
 
+        <div className="top-plus-sign">+</div>
+
+        <div className="bottom-data-bar">
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+
+        <div ref={textStageRef} className="grid-tunnel-stage">
+          
+          {/* ================= TEXT BLOCK 1 ================= */}
+          <div ref={textGroup1Ref} className="grid-tunnel-text-group group-1">
+            {/* Line 1: SOME COMPANIES */}
+            <div ref={line1Ref} className="grid-tunnel-line line-1">
+              <span>S</span>
+              <GlobeFlareIcon />
+              <span>ME</span>
+              <span className="word-space">&nbsp;</span>
+              <span className="blue-text-glow">COMPANIES</span>
+            </div>
+
+            {/* Line 2: NEED TO LEARN AI. */}
+            <div ref={line2Ref} className="grid-tunnel-line line-2">
+              <span>NEED TO</span>
+              <span className="word-space">&nbsp;</span>
+              <span className="blue-text-glow">LEARN AI.</span>
+              <TechBrainGraphic />
+            </div>
+
+            {/* Line 3: SOME NEED IT BUILT. */}
+            <div ref={line3Ref} className="grid-tunnel-line line-3">
+              <IsometricCubesGraphic />
+              <span>SOME NEED IT</span>
+              <span className="word-space">&nbsp;</span>
+              <span className="blue-text-glow">BUILT.</span>
+            </div>
+
+            {/* Line 4: WE DO BOTH. (Sci-Fi Glass Banner) */}
+            <div ref={line4Ref} className="grid-tunnel-line line-4">
+              <div className="sci-fi-banner">
+                <div className="banner-trail-left" />
+                <div className="banner-content">
+                  <span>WE DO</span>
+                  <span className="word-space">&nbsp;</span>
+                  <span className="blue-text-glow">B</span>
+                  <CheckTargetIcon />
+                  <span className="blue-text-glow">TH.</span>
+                </div>
+                <div className="banner-trail-right" />
+              </div>
+            </div>
+          </div>
+
+          {/* ================= TEXT BLOCK 2 ================= */}
+          <div ref={textGroup2Ref} className="grid-tunnel-text-group group-2">
+
+            {/* Left Side Chevrons & HUD Trace */}
+            <div className="side-hud-left">
+              <span className="hud-line-trace" />
+              <span className="hud-chevrons">›››</span>
+            </div>
+
+            {/* Right Side Chevrons & HUD Trace */}
+            <div className="side-hud-right">
+              <span className="hud-chevrons">›››</span>
+              <span className="hud-line-trace" />
+            </div>
+
+            <div className="deploy-today-container">
+              {/* Line 1: For organizations */}
+              <h3 className="deploy-line-1">For organizations</h3>
+
+              {/* Line 2: ready to */}
+              <h2 className="deploy-line-2">ready to</h2>
+
+              {/* Line 3: deploy AI today */}
+              <h1 className="deploy-line-3">deploy AI today</h1>
+
+              {/* Bottom Tech Divider Line with Notch & 3 Dots */}
+              <div className="deploy-tech-divider">
+                <span className="divider-line-left" />
+                <div className="divider-notch">
+                  <span className="notch-dot" />
+                  <span className="notch-dot" />
+                  <span className="notch-dot" />
+                </div>
+                <span className="divider-line-right" />
+              </div>
+            </div>
+
+          </div>
+
+          {/* ================= STEP 3: 6 SERVICES CARDS ================= */}
+          <div ref={cardsStageRef} className="tunnel-cards-stage">
+            {cardsData.map((card, idx) => (
+              <div
+                key={card.id}
+                ref={(el) => (cardsRef.current[idx] = el)}
+                className={`tunnel-card card-${card.id}`}
+                style={{
+                  '--card-accent': card.accentColor
+                }}
+              >
+                {/* Background Gradient & Glow Mesh */}
+                <div className="card-bg-gradient" style={{ background: card.gradient }} />
+                <div className="card-glow-mesh" style={{ background: card.bgPattern }} />
+
+                {/* Decorative Tech Grid Lines */}
+                <div className="card-grid-overlay" />
+
+                {/* Card Content Overlay */}
+                <div className="card-content">
+                  
+                  {/* Header: Badge Only */}
+                  <div className="card-header-row">
+                    <span className="card-badge">{card.badge}</span>
+                  </div>
+
+                  {/* For Audience Sub-badge */}
+                  <div className="card-for-badge">
+                    <span className="for-label">FOR:</span> {card.forWho}
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="card-title">{card.title}</h3>
+
+                  {/* You Get Deliverables List */}
+                  <div className="card-deliverables-box">
+                    <span className="deliverables-label">YOU GET</span>
+                    <ul className="deliverables-list">
+                      {card.youGet.map((item, i) => (
+                        <li key={i}>
+                          <span className="deliverable-bullet" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Outcome Statement */}
+                  <div className="card-outcome-box">
+                    <span className="outcome-label">OUTCOME</span>
+                    <p className="outcome-text">{card.outcome}</p>
+                  </div>
+
+                  {/* Footer Action Button */}
+                  <div className="card-footer-row">
+                    <button className="card-cta-btn">
+                      <span>{card.cta}</span>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
       </div>
     </section>
   );
