@@ -375,7 +375,7 @@ export default function GridTunnelSection() {
     };
   }, []);
 
-  // 2. GSAP Animations: 4-Phase Sequence for Seamless Exit
+  // 2. GSAP Animations: 3-Phase Entrance Sequence (no exit — cards freeze at final state)
   useEffect(() => {
     const linesGroup1 = [line1Ref.current, line2Ref.current, line3Ref.current, line4Ref.current];
     if (!linesGroup1[0] || !linesGroup1[1] || !linesGroup1[2] || !linesGroup1[3] || 
@@ -421,12 +421,14 @@ export default function GridTunnelSection() {
         }
       });
 
-      // Single ScrollTrigger Pinned Timeline for 4-Phase Sequence
+      // Single ScrollTrigger Pinned Timeline — 3 phases only (entrance + card scroll)
+      // end: '+=756%' = 84% × 900% (phase 3B ends at 0.84 of original timeline)
+      // Pin releases the moment the last card settles. No exit phase.
       const scrollTl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: '+=900%',
+          end: '+=756%',
           pin: true,
           anticipatePin: 1,
           scrub: 0.8,
@@ -500,19 +502,9 @@ export default function GridTunnelSection() {
         }, 0.63);
       });
 
-      // --- STEP 4: SEAMLESS EXIT PHASE (0.84 -> 1.00) ---
-      // Cards 3, 4, 5, 6 smoothly fly into depth and vanish to 0 opacity before section unpins
-      cardsRef.current.forEach((cardEl) => {
-        if (!cardEl) return;
-        scrollTl.to(cardEl, {
-          scale: 0.08,
-          z: -3500,
-          opacity: 0,
-          filter: 'blur(8px)',
-          duration: 0.16,
-          ease: 'power1.in'
-        }, 0.84);
-      });
+      // STEP 4 REMOVED: No exit animation.
+      // At this point (timeline end), 4 cards are frozen in their Phase 3B final positions.
+      // The pin releases and the section scrolls normally into the Manifesto.
 
     }, sectionRef);
 
